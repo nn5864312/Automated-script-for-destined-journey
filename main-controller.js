@@ -11,7 +11,7 @@ if (!user || !property || !world || !eventchain || !fatesystem) {
   return;
 }
   // 按照顺序执行模块
-  Lock_favorability(fatesystem);
+  //Lock_favorability(fatesystem);
   uninject(); // 1. 解除注入
   experiencegrowth(user); // 2. 经验与等级处理
   CurrencySystem(property); // 3. 货币换算
