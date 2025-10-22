@@ -46,14 +46,11 @@ export interface EventChain {
 }
 
 export interface FateSystem {
-    红线对象: {
-        希洛西娅?: {
-            好感度: number;
-        };
-        希尔薇娅?: {
-            好感度: number;
-        };
+  红线对象: {
+    [name: string]: {
+      好感度: number;
     };
+  };
 }
 
 export interface Variables {
