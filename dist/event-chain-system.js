@@ -25,7 +25,7 @@ function event_chain(eventchain, world) {
         injectPrompts([
             {
                 id: "event_chain",
-                content: `1145141919810当前事件为${title}，当前步骤为${step}`,
+                content: `当前事件为${title}，当前步骤为${step}`,
                 position: "none",
                 depth: 0,
                 role: "system",

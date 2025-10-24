@@ -53,6 +53,14 @@ export interface FateSystem {
   };
 }
 
+export interface FateSystemOld {
+  红线对象: {
+    [name: string]: {
+      好感度: number;
+    };
+  };
+}
+
 export interface Variables {
     stat_data: {
         角色: User;
@@ -61,4 +69,7 @@ export interface Variables {
         事件链: EventChain;
         命运系统: FateSystem;
     };
+    display_data: {
+        命运系统: FateSystemOld;
+    }
 }

@@ -4,16 +4,7 @@ exports.experiencegrowth = experiencegrowth;
 const config_1 = require("./config");
 const utils_1 = require("./utils");
 function experiencegrowth(user) {
-    // 校准升级所需经验
-    user.状态.升级所需经验 = config_1.JOB_LEVEL_XP_TABLE[user.状态.等级];
     const currentLevel = user.状态.等级;
-    // 确保累计经验值不低于前一级的要求
-    if (currentLevel > 0) {
-        const requiredXpForPreviousLevel = config_1.JOB_LEVEL_XP_TABLE[currentLevel - 1];
-        if ((0, utils_1.safeParseFloat)(user.状态.累计经验值) < requiredXpForPreviousLevel) {
-            user.状态.累计经验值 = requiredXpForPreviousLevel;
-        }
-    }
     let hasLeveledUp = false;
     // 升级处理循环
     while ((0, utils_1.safeParseFloat)(user.状态.累计经验值) >=

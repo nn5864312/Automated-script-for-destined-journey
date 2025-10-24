@@ -9,18 +9,7 @@ import { safeParseFloat } from './utils';
 declare function injectPrompts(prompts: any[]): void;
 
 export function experiencegrowth(user: User): void {
-    // 校准升级所需经验
-  user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
-
   const currentLevel = user.状态.等级;
-  // 确保累计经验值不低于前一级的要求
-  if (currentLevel > 0) {
-    const requiredXpForPreviousLevel = JOB_LEVEL_XP_TABLE[currentLevel - 1];
-    if (safeParseFloat(user.状态.累计经验值) < requiredXpForPreviousLevel) {
-      user.状态.累计经验值 = requiredXpForPreviousLevel;
-    }
-  }
-
   let hasLeveledUp = false;
   // 升级处理循环
   while (

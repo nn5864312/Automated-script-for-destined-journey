@@ -15,13 +15,14 @@ function Main_processes(variables: Variables) {
   const world = variables.stat_data.世界;
   const eventchain = variables.stat_data.事件链;
   const fatesystem = variables.stat_data.命运系统;
+  const fatesystemold = variables.display_data.命运系统;
 
   if (!user || !property || !world || !eventchain || !fatesystem) {
     console.error("Core data missing, script terminated");
     return;
   }
   // 按照顺序执行模块
-  maintain(user, fatesystem);
+  maintain(user, fatesystem, fatesystemold);
   uninject();
   experiencegrowth(user);
   CurrencySystem(property);

@@ -2,15 +2,14 @@
  * Automated Script for Destined Journey
  * 命定之旅自动化脚本
  * 
- * @version 1.0.3
- * @date 2025-10-18
+ * @version 1.0.4
+ * @date 2025-10-24
  * @license MIT
  * 
  * 这是一个自动生成的合并文件，包含以下模块：
  * - utils.js
 - config.js
 - maintain.js
-- lock_HS.js
 - experience-level.js
 - currency-system.js
 - info-injection.js
@@ -24,10 +23,6 @@
 // ============================================================
 // utils.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.safeParseFloat = safeParseFloat;
-exports.uninject = uninject;
 /**
  * 安全的浮点数解析函数
  * @param {*} value - 要解析的值
@@ -46,15 +41,11 @@ function uninject() {
     uninjectPrompts(idsToRemove);
 }
 
-
 // ============================================================
 // config.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.GAME_CONFIG = exports.JOB_LEVEL_XP_TABLE = exports.MILESTONE_LEVELS = void 0;
 // 里程碑等级配置
-exports.MILESTONE_LEVELS = {
+const MILESTONE_LEVELS = {
     5: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: '第二层级/中坚' },
     9: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: '第三层级/精英' },
     13: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: '第四层级/史诗' },
@@ -63,87 +54,76 @@ exports.MILESTONE_LEVELS = {
     25: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: '第七层级/登神' }
 };
 // 职业等级经验表
-exports.JOB_LEVEL_XP_TABLE = {
+const JOB_LEVEL_XP_TABLE = {
     0: 0, 1: 15, 2: 55, 3: 130, 4: 290, 5: 640, 6: 1120, 7: 1750, 8: 2710, 9: 3385,
     10: 4225, 11: 5215, 12: 6475, 13: 7515, 14: 8747, 15: 10187, 16: 11979, 17: 12574, 18: 13294, 19: 14149,
     20: 15349, 21: 15601, 22: 15865, 23: 16279, 24: 17500, 25: 1145141919810
 };
 // 核心游戏配置
-exports.GAME_CONFIG = {
+const GAME_CONFIG = {
     GP_TO_SP: 100,
     SP_TO_CP: 100,
     AP_Acquisition_Level: 1,
 };
 
-
 // ============================================================
 // maintain.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.maintain = maintain;
-const utils_1 = require("./utils");
-function maintain(user) {
-    user.资源.生命值 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.资源.生命值), 0), (0, utils_1.safeParseFloat)(user.资源.生命值上限));
-    user.资源.法力值 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.资源.法力值), 0), (0, utils_1.safeParseFloat)(user.资源.法力值上限));
-    user.资源.体力值 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.资源.体力值), 0), (0, utils_1.safeParseFloat)(user.资源.体力值上限));
-    user.属性.力量 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.属性.力量), 0), 20);
-    user.属性.敏捷 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.属性.敏捷), 0), 20);
-    user.属性.体质 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.属性.体质), 0), 20);
-    user.属性.智力 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.属性.智力), 0), 20);
-    user.属性.精神 = Math.min(Math.max((0, utils_1.safeParseFloat)(user.属性.精神), 0), 20);
-}
-
-
-// ============================================================
-// lock_HS.js
-// ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.Lock_favorability = Lock_favorability;
-function Lock_favorability(fatesystem) {
-    var _a, _b, _c, _d;
-    if (((_b = (_a = fatesystem.红线对象) === null || _a === void 0 ? void 0 : _a.希洛西娅) === null || _b === void 0 ? void 0 : _b.好感度) && fatesystem.红线对象.希洛西娅.好感度 >= 40) {
-        fatesystem.红线对象.希洛西娅.好感度 = 39;
+function maintain(user, fatesystem, fatesystemold) {
+    user.资源.生命值 = Math.min(Math.max(safeParseFloat(user.资源.生命值), 0), safeParseFloat(user.资源.生命值上限));
+    user.资源.法力值 = Math.min(Math.max(safeParseFloat(user.资源.法力值), 0), safeParseFloat(user.资源.法力值上限));
+    user.资源.体力值 = Math.min(Math.max(safeParseFloat(user.资源.体力值), 0), safeParseFloat(user.资源.体力值上限));
+    user.属性.力量 = Math.min(Math.max(safeParseFloat(user.属性.力量), 0), 20);
+    user.属性.敏捷 = Math.min(Math.max(safeParseFloat(user.属性.敏捷), 0), 20);
+    user.属性.体质 = Math.min(Math.max(safeParseFloat(user.属性.体质), 0), 20);
+    user.属性.智力 = Math.min(Math.max(safeParseFloat(user.属性.智力), 0), 20);
+    user.属性.精神 = Math.min(Math.max(safeParseFloat(user.属性.精神), 0), 20);
+    const RedlineObject = fatesystem.红线对象;
+    const RedlineObjectold = fatesystemold.红线对象;
+    for (const name in RedlineObject) {
+        const CurrentObject = RedlineObject[name];
+        const CurrentFavorability = safeParseFloat(CurrentObject.好感度);
+        const OldObject = RedlineObjectold[name];
+        if (OldObject) {
+            const OldFavorability = safeParseFloat(OldObject.好感度);
+            let diff = CurrentFavorability - OldFavorability;
+            if (diff > 5) {
+                CurrentObject.好感度 = OldFavorability + 5;
+            }
+            else if (diff < -5) {
+                CurrentObject.好感度 = OldFavorability - 5;
+            }
+        }
+        CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
     }
-    if (((_d = (_c = fatesystem.红线对象) === null || _c === void 0 ? void 0 : _c.希尔薇娅) === null || _d === void 0 ? void 0 : _d.好感度) && fatesystem.红线对象.希尔薇娅.好感度 >= 40) {
-        fatesystem.红线对象.希尔薇娅.好感度 = 39;
+    user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
+    const currentLevel = user.状态.等级;
+    if (currentLevel > 0) {
+        const requiredXpForPreviousLevel = JOB_LEVEL_XP_TABLE[currentLevel - 1];
+        if (safeParseFloat(user.状态.累计经验值) < requiredXpForPreviousLevel) {
+            user.状态.累计经验值 = requiredXpForPreviousLevel;
+        }
     }
 }
-
 
 // ============================================================
 // experience-level.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.experiencegrowth = experiencegrowth;
-const config_1 = require("./config");
-const utils_1 = require("./utils");
 function experiencegrowth(user) {
-    // 校准升级所需经验
-    user.状态.升级所需经验 = config_1.JOB_LEVEL_XP_TABLE[user.状态.等级];
     const currentLevel = user.状态.等级;
-    // 确保累计经验值不低于前一级的要求
-    if (currentLevel > 0) {
-        const requiredXpForPreviousLevel = config_1.JOB_LEVEL_XP_TABLE[currentLevel - 1];
-        if ((0, utils_1.safeParseFloat)(user.状态.累计经验值) < requiredXpForPreviousLevel) {
-            user.状态.累计经验值 = requiredXpForPreviousLevel;
-        }
-    }
     let hasLeveledUp = false;
     // 升级处理循环
-    while ((0, utils_1.safeParseFloat)(user.状态.累计经验值) >=
-        (0, utils_1.safeParseFloat)(user.状态.升级所需经验)) {
-        if (!config_1.JOB_LEVEL_XP_TABLE[user.状态.等级]) {
+    while (safeParseFloat(user.状态.累计经验值) >=
+        safeParseFloat(user.状态.升级所需经验)) {
+        if (!JOB_LEVEL_XP_TABLE[user.状态.等级]) {
             break;
         }
-        user.状态.等级 = (0, utils_1.safeParseFloat)(user.状态.等级) + 1;
+        user.状态.等级 = safeParseFloat(user.状态.等级) + 1;
         hasLeveledUp = true;
-        user.状态.升级所需经验 = config_1.JOB_LEVEL_XP_TABLE[user.状态.等级];
+        user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
         // 检查是否获得属性点
-        if (user.状态.等级 % config_1.GAME_CONFIG.AP_Acquisition_Level === 0) {
-            user.属性.属性点 = (0, utils_1.safeParseFloat)(user.属性.属性点) + 1;
+        if (user.状态.等级 % GAME_CONFIG.AP_Acquisition_Level === 0) {
+            user.属性.属性点 = safeParseFloat(user.属性.属性点) + 1;
             injectPrompts([
                 {
                     id: "AP+",
@@ -156,13 +136,13 @@ function experiencegrowth(user) {
             ]);
         }
         // 检查里程碑等级
-        const milestone = config_1.MILESTONE_LEVELS[user.状态.等级];
+        const milestone = MILESTONE_LEVELS[user.状态.等级];
         if (milestone) {
-            user.属性.力量 = (0, utils_1.safeParseFloat)(user.属性.力量) + milestone.strength;
-            user.属性.敏捷 = (0, utils_1.safeParseFloat)(user.属性.敏捷) + milestone.agility;
-            user.属性.体质 = (0, utils_1.safeParseFloat)(user.属性.体质) + milestone.constitution;
-            user.属性.智力 = (0, utils_1.safeParseFloat)(user.属性.智力) + milestone.intelligence;
-            user.属性.精神 = (0, utils_1.safeParseFloat)(user.属性.精神) + milestone.spirit;
+            user.属性.力量 = safeParseFloat(user.属性.力量) + milestone.strength;
+            user.属性.敏捷 = safeParseFloat(user.属性.敏捷) + milestone.agility;
+            user.属性.体质 = safeParseFloat(user.属性.体质) + milestone.constitution;
+            user.属性.智力 = safeParseFloat(user.属性.智力) + milestone.intelligence;
+            user.属性.精神 = safeParseFloat(user.属性.精神) + milestone.spirit;
             user.状态.生命层级 = milestone.tier;
         }
     }
@@ -181,15 +161,9 @@ function experiencegrowth(user) {
     }
 }
 
-
 // ============================================================
 // currency-system.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CurrencySystem = CurrencySystem;
-const config_1 = require("./config");
-const utils_1 = require("./utils");
 /**
  * 货币系统模块
  * 当某种货币被扣成负数时，自动从更高层级的货币中换算抵扣
@@ -198,9 +172,9 @@ const utils_1 = require("./utils");
  * @param {Object} property - 财产对象，包含货币信息
  */
 function CurrencySystem(property) {
-    let GP = (0, utils_1.safeParseFloat)(property.货币.金币);
-    let SP = (0, utils_1.safeParseFloat)(property.货币.银币);
-    let CP = (0, utils_1.safeParseFloat)(property.货币.铜币);
+    let GP = safeParseFloat(property.货币.金币);
+    let SP = safeParseFloat(property.货币.银币);
+    let CP = safeParseFloat(property.货币.铜币);
     function handleCurrencyExchange() {
         let currencyCleared = false;
         // GP购买处理：GP被扣成负时的换算逻辑
@@ -209,23 +183,23 @@ function CurrencySystem(property) {
             let gpDeficit = Math.abs(GP);
             // 阶段1：优先用SP抵扣 (1GP = 100SP)
             if (SP > 0) {
-                let spCanCover = Math.floor(SP / config_1.GAME_CONFIG.GP_TO_SP);
+                let spCanCover = Math.floor(SP / GAME_CONFIG.GP_TO_SP);
                 if (spCanCover >= gpDeficit) {
                     // SP足够抵扣
-                    SP -= gpDeficit * config_1.GAME_CONFIG.GP_TO_SP;
+                    SP -= gpDeficit * GAME_CONFIG.GP_TO_SP;
                     GP = 0;
                     gpDeficit = 0;
                 }
                 else {
                     // SP不足，用完所有SP
                     gpDeficit -= spCanCover;
-                    SP = SP % config_1.GAME_CONFIG.GP_TO_SP;
+                    SP = SP % GAME_CONFIG.GP_TO_SP;
                 }
             }
             // 阶段2：SP不足时，将CP转换为SP循环抵扣
             while (gpDeficit > 0 && CP > 0) {
                 // 计算需要多少CP来换1GP (1GP = 100SP * 100CP = 10000CP)
-                let cpNeeded = config_1.GAME_CONFIG.GP_TO_SP * config_1.GAME_CONFIG.SP_TO_CP;
+                let cpNeeded = GAME_CONFIG.GP_TO_SP * GAME_CONFIG.SP_TO_CP;
                 if (CP >= cpNeeded) {
                     // 将CP转换为GP
                     CP -= cpNeeded;
@@ -234,25 +208,25 @@ function CurrencySystem(property) {
                 }
                 else {
                     // CP不足以换1GP，将剩余CP转换为SP
-                    SP = Math.floor(CP / config_1.GAME_CONFIG.SP_TO_CP);
-                    CP = CP % config_1.GAME_CONFIG.SP_TO_CP;
+                    SP = Math.floor(CP / GAME_CONFIG.SP_TO_CP);
+                    CP = CP % GAME_CONFIG.SP_TO_CP;
                     // 用新获得的SP抵扣GP
-                    let spCanCover = Math.floor(SP / config_1.GAME_CONFIG.GP_TO_SP);
+                    let spCanCover = Math.floor(SP / GAME_CONFIG.GP_TO_SP);
                     if (spCanCover >= gpDeficit) {
-                        SP -= gpDeficit * config_1.GAME_CONFIG.GP_TO_SP;
+                        SP -= gpDeficit * GAME_CONFIG.GP_TO_SP;
                         GP = 0;
                         gpDeficit = 0;
                     }
                     else {
                         gpDeficit -= spCanCover;
-                        SP = SP % config_1.GAME_CONFIG.GP_TO_SP;
+                        SP = SP % GAME_CONFIG.GP_TO_SP;
                     }
                     break; // CP已用完，退出循环
                 }
             }
             // 阶段3：所有货币都耗尽，将GP债务转换为CP债务
             if (gpDeficit > 0) {
-                CP = -(gpDeficit * config_1.GAME_CONFIG.GP_TO_SP * config_1.GAME_CONFIG.SP_TO_CP);
+                CP = -(gpDeficit * GAME_CONFIG.GP_TO_SP * GAME_CONFIG.SP_TO_CP);
                 GP = 0;
                 currencyCleared = true;
             }
@@ -263,12 +237,12 @@ function CurrencySystem(property) {
             let spDeficit = Math.abs(SP);
             // 阶段1：优先用GP抵扣 (1GP = 100SP)
             if (GP > 0) {
-                let gpCanCover = GP * config_1.GAME_CONFIG.GP_TO_SP;
+                let gpCanCover = GP * GAME_CONFIG.GP_TO_SP;
                 if (gpCanCover >= spDeficit) {
                     // GP足够抵扣
-                    let gpNeeded = Math.ceil(spDeficit / config_1.GAME_CONFIG.GP_TO_SP);
+                    let gpNeeded = Math.ceil(spDeficit / GAME_CONFIG.GP_TO_SP);
                     GP -= gpNeeded;
-                    SP = gpNeeded * config_1.GAME_CONFIG.GP_TO_SP - spDeficit;
+                    SP = gpNeeded * GAME_CONFIG.GP_TO_SP - spDeficit;
                     spDeficit = 0;
                 }
                 else {
@@ -280,17 +254,17 @@ function CurrencySystem(property) {
             // 阶段2：GP不足时，将CP转换为GP循环抵扣
             while (spDeficit > 0 && CP > 0) {
                 // 计算需要多少CP来换1GP (1GP = 100SP * 100CP = 10000CP)
-                let cpNeeded = config_1.GAME_CONFIG.GP_TO_SP * config_1.GAME_CONFIG.SP_TO_CP;
+                let cpNeeded = GAME_CONFIG.GP_TO_SP * GAME_CONFIG.SP_TO_CP;
                 if (CP >= cpNeeded) {
                     // 将CP转换为GP
                     CP -= cpNeeded;
                     GP = 1;
                     // 用新获得的GP抵扣SP
-                    let gpCanCover = GP * config_1.GAME_CONFIG.GP_TO_SP;
+                    let gpCanCover = GP * GAME_CONFIG.GP_TO_SP;
                     if (gpCanCover >= spDeficit) {
-                        let gpNeeded = Math.ceil(spDeficit / config_1.GAME_CONFIG.GP_TO_SP);
+                        let gpNeeded = Math.ceil(spDeficit / GAME_CONFIG.GP_TO_SP);
                         GP -= gpNeeded;
-                        SP = gpNeeded * config_1.GAME_CONFIG.GP_TO_SP - spDeficit;
+                        SP = gpNeeded * GAME_CONFIG.GP_TO_SP - spDeficit;
                         spDeficit = 0;
                     }
                     else {
@@ -305,7 +279,7 @@ function CurrencySystem(property) {
             }
             // 阶段3：所有货币都耗尽，将SP债务转换为CP债务
             if (spDeficit > 0) {
-                CP = -(spDeficit * config_1.GAME_CONFIG.SP_TO_CP);
+                CP = -(spDeficit * GAME_CONFIG.SP_TO_CP);
                 SP = 0;
                 currencyCleared = true;
             }
@@ -316,12 +290,12 @@ function CurrencySystem(property) {
             let cpDeficit = Math.abs(CP);
             // 阶段1：优先用SP抵扣 (1SP = 100CP)
             if (SP > 0) {
-                let spCanCover = SP * config_1.GAME_CONFIG.SP_TO_CP;
+                let spCanCover = SP * GAME_CONFIG.SP_TO_CP;
                 if (spCanCover >= cpDeficit) {
                     // SP足够抵扣
-                    let spNeeded = Math.ceil(cpDeficit / config_1.GAME_CONFIG.SP_TO_CP);
+                    let spNeeded = Math.ceil(cpDeficit / GAME_CONFIG.SP_TO_CP);
                     SP -= spNeeded;
-                    CP = spNeeded * config_1.GAME_CONFIG.SP_TO_CP - cpDeficit;
+                    CP = spNeeded * GAME_CONFIG.SP_TO_CP - cpDeficit;
                     cpDeficit = 0;
                 }
                 else {
@@ -334,14 +308,14 @@ function CurrencySystem(property) {
             while (cpDeficit > 0 && GP > 0) {
                 // 将1GP转换为100SP
                 GP -= 1;
-                SP = config_1.GAME_CONFIG.GP_TO_SP;
+                SP = GAME_CONFIG.GP_TO_SP;
                 // 用新获得的SP抵扣CP
-                let spCanCover = SP * config_1.GAME_CONFIG.SP_TO_CP;
+                let spCanCover = SP * GAME_CONFIG.SP_TO_CP;
                 if (spCanCover >= cpDeficit) {
                     // 新获得的SP足够抵扣剩余债务
-                    let spNeeded = Math.ceil(cpDeficit / config_1.GAME_CONFIG.SP_TO_CP);
+                    let spNeeded = Math.ceil(cpDeficit / GAME_CONFIG.SP_TO_CP);
                     SP -= spNeeded;
-                    CP = spNeeded * config_1.GAME_CONFIG.SP_TO_CP - cpDeficit;
+                    CP = spNeeded * GAME_CONFIG.SP_TO_CP - cpDeficit;
                     cpDeficit = 0;
                 }
                 else {
@@ -363,13 +337,9 @@ function CurrencySystem(property) {
     property.货币.铜币 = Math.floor(CP);
 }
 
-
 // ============================================================
 // info-injection.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.inforead = inforead;
 /**
  * 信息读取与注入模块
  * @param {Object} world - 世界对象
@@ -399,13 +369,9 @@ function inforead(world) {
     ]);
 }
 
-
 // ============================================================
 // event-chain-system.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.event_chain = event_chain;
 function event_chain(eventchain, world) {
     uninjectPrompts(["event_chain_end"]);
     injectPrompts([
@@ -430,7 +396,7 @@ function event_chain(eventchain, world) {
         injectPrompts([
             {
                 id: "event_chain",
-                content: `1145141919810当前事件为${title}，当前步骤为${step}`,
+                content: `当前事件为${title}，当前步骤为${step}`,
                 position: "none",
                 depth: 0,
                 role: "system",
@@ -471,42 +437,32 @@ function event_chain(eventchain, world) {
     }
 }
 
-
 // ============================================================
 // main-controller.js
 // ============================================================
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const utils_1 = require("./utils");
-const experience_level_1 = require("./experience-level");
-const currency_system_1 = require("./currency-system");
-const info_injection_1 = require("./info-injection");
-const event_chain_system_1 = require("./event-chain-system");
-const maintain_1 = require("./maintain");
 function Main_processes(variables) {
     const user = variables.stat_data.角色;
     const property = variables.stat_data.财产;
     const world = variables.stat_data.世界;
     const eventchain = variables.stat_data.事件链;
     const fatesystem = variables.stat_data.命运系统;
+    const fatesystemold = variables.display_data.命运系统;
     if (!user || !property || !world || !eventchain || !fatesystem) {
         console.error("Core data missing, script terminated");
         return;
     }
     // 按照顺序执行模块
-    (0, maintain_1.maintain)(user);
-    //Lock_favorability(fatesystem);
-    (0, utils_1.uninject)();
-    (0, experience_level_1.experiencegrowth)(user);
-    (0, currency_system_1.CurrencySystem)(property);
-    (0, info_injection_1.inforead)(world);
-    (0, event_chain_system_1.event_chain)(eventchain, world);
+    maintain(user, fatesystem, fatesystemold);
+    uninject();
+    experiencegrowth(user);
+    CurrencySystem(property);
+    inforead(world);
+    event_chain(eventchain, world);
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
 eventOn("message_sent", Main_processes);
 eventOnButton('重新处理变量', Main_processes);
-
 
 
 })();
