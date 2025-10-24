@@ -31,4 +31,5 @@ function Main_processes(variables: Variables) {
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
+eventOn("message_sent", Main_processes);
 eventOnButton('重新处理变量', Main_processes);
