@@ -9,7 +9,7 @@ function experiencegrowth(user) {
     // 升级处理循环
     while ((0, utils_1.safeParseFloat)(user.状态.累计经验值) >=
         (0, utils_1.safeParseFloat)(user.状态.升级所需经验)) {
-        if (!config_1.JOB_LEVEL_XP_TABLE[user.状态.等级]) {
+        if (!config_1.JOB_LEVEL_XP_TABLE[user.状态.等级] || (0, utils_1.safeParseFloat)(user.状态.累计经验值) >= 1145141919810) {
             break;
         }
         user.状态.等级 = (0, utils_1.safeParseFloat)(user.状态.等级) + 1;

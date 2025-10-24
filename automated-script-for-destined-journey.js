@@ -96,6 +96,7 @@ function maintain(user, fatesystem, fatesystemold) {
         }
         CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
     }
+    user.状态.等级 = Math.max(0, Math.min(user.状态.等级, 25));
     user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
     const currentLevel = user.状态.等级;
     if (currentLevel > 0) {
@@ -115,7 +116,7 @@ function experiencegrowth(user) {
     // 升级处理循环
     while (safeParseFloat(user.状态.累计经验值) >=
         safeParseFloat(user.状态.升级所需经验)) {
-        if (!JOB_LEVEL_XP_TABLE[user.状态.等级]) {
+        if (!JOB_LEVEL_XP_TABLE[user.状态.等级] || safeParseFloat(user.状态.累计经验值) >= 1145141919810) {
             break;
         }
         user.状态.等级 = safeParseFloat(user.状态.等级) + 1;
@@ -373,6 +374,7 @@ function inforead(world) {
 // event-chain-system.js
 // ============================================================
 function event_chain(eventchain, world) {
+    var _a;
     uninjectPrompts(["event_chain_end"]);
     injectPrompts([
         {
@@ -386,7 +388,8 @@ function event_chain(eventchain, world) {
     ]);
     if (eventchain.开启 == true) {
         eventchain.开启 = true;
-        localStorage.setItem("event_chain_time", `${world.时间}`);
+        deleteVariable("event_chain.time", { type: 'chat' });
+        insertOrAssignVariables({ event_chain: { time: world.时间 } }, { type: 'chat' });
         // 清除之前的事件链注入
         uninjectPrompts(["event_chain"]);
         uninjectPrompts(["event_chain_tips"]);
@@ -421,9 +424,12 @@ function event_chain(eventchain, world) {
         const title = eventchain.标题;
         if (eventchain.琥珀事件 == true) {
             eventchain.琥珀事件 = true;
-            let time = localStorage.getItem("event_chain_time");
-            if (time !== null)
+            // 使用变量系统获取事件链时间
+            const variables = getVariables({ type: 'chat' });
+            const time = (_a = variables === null || variables === void 0 ? void 0 : variables.event_chain) === null || _a === void 0 ? void 0 : _a.time;
+            if (time !== undefined && time !== null) {
                 world.时间 = time;
+            }
         }
         uninjectPrompts(["event_chain"]);
         uninjectPrompts(["event_chain_tips"]);
@@ -433,7 +439,7 @@ function event_chain(eventchain, world) {
         eventchain.结束 = false;
         eventchain.开启 = false;
         eventchain.琥珀事件 = false;
-        localStorage.removeItem("event_chain_time");
+        deleteVariable("event_chain.time", { type: 'chat' });
     }
 }
 
@@ -441,12 +447,13 @@ function event_chain(eventchain, world) {
 // main-controller.js
 // ============================================================
 function Main_processes(variables) {
+    var _a;
     const user = variables.stat_data.角色;
     const property = variables.stat_data.财产;
     const world = variables.stat_data.世界;
     const eventchain = variables.stat_data.事件链;
     const fatesystem = variables.stat_data.命运系统;
-    const fatesystemold = variables.display_data.命运系统;
+    const fatesystemold = ((_a = variables.display_data) === null || _a === void 0 ? void 0 : _a.命运系统) || {};
     if (!user || !property || !world || !eventchain || !fatesystem) {
         console.error("Core data missing, script terminated");
         return;
@@ -461,7 +468,6 @@ function Main_processes(variables) {
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
-eventOn("message_sent", Main_processes);
 eventOnButton('重新处理变量', Main_processes);
 
 

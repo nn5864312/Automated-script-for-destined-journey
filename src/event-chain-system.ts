@@ -7,6 +7,9 @@ import { EventChain, World } from './types';
 
 declare function uninjectPrompts(ids: string[]): void;
 declare function injectPrompts(prompts: any[]): void;
+declare function getVariables(option: { type: 'chat' | 'character' | 'preset' | 'global' }): Record<string, any>;
+declare function insertOrAssignVariables(variables: Record<string, any>, option: { type: 'chat' | 'character' | 'preset' | 'global' }): Record<string, any>;
+declare function deleteVariable(variable_path: string, option: { type: 'chat' | 'character' | 'preset' | 'global' }): { variables: Record<string, any>; delete_occurred: boolean };
 
 export function event_chain(eventchain: EventChain, world: World): void {
   uninjectPrompts(["event_chain_end"]);
@@ -21,8 +24,12 @@ export function event_chain(eventchain: EventChain, world: World): void {
     },
   ]);
   if (eventchain.开启 == true) {
-    eventchain.开启 = true
-    localStorage.setItem("event_chain_time", `${world.时间}`);
+    eventchain.开启 = true;
+    deleteVariable("event_chain.time", { type: 'chat' });
+    insertOrAssignVariables(
+      { event_chain: { time: world.时间 } },
+      { type: 'chat' }
+    );
     // 清除之前的事件链注入
     uninjectPrompts(["event_chain"]);
     uninjectPrompts(["event_chain_tips"]);
@@ -56,13 +63,16 @@ export function event_chain(eventchain: EventChain, world: World): void {
   }
   // 检查是否结束事件链
   if (eventchain.结束 == true) {
-    eventchain.结束 = true
+    eventchain.结束 = true;
     const title = eventchain.标题;
     if (eventchain.琥珀事件 == true) {
-      eventchain.琥珀事件 = true
-      let time = localStorage.getItem("event_chain_time");
-      if(time !== null)
-      world.时间 = time;
+      eventchain.琥珀事件 = true;
+      // 使用变量系统获取事件链时间
+      const variables = getVariables({ type: 'chat' });
+      const time = variables?.event_chain?.time;
+      if (time !== undefined && time !== null) {
+        world.时间 = time;
+      }
     }
     uninjectPrompts(["event_chain"]);
     uninjectPrompts(["event_chain_tips"]);
@@ -72,6 +82,6 @@ export function event_chain(eventchain: EventChain, world: World): void {
     eventchain.结束 = false;
     eventchain.开启 = false;
     eventchain.琥珀事件 = false;
-    localStorage.removeItem("event_chain_time");
+    deleteVariable("event_chain.time", { type: 'chat' });
   }
 }

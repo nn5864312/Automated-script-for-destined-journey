@@ -30,6 +30,7 @@ function maintain(user, fatesystem, fatesystemold) {
         }
         CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
     }
+    user.状态.等级 = Math.max(0, Math.min(user.状态.等级, 25));
     user.状态.升级所需经验 = config_1.JOB_LEVEL_XP_TABLE[user.状态.等级];
     const currentLevel = user.状态.等级;
     if (currentLevel > 0) {

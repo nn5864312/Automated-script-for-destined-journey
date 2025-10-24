@@ -16,7 +16,7 @@ export function experiencegrowth(user: User): void {
     safeParseFloat(user.状态.累计经验值) >=
     safeParseFloat(user.状态.升级所需经验)
   ) {
-    if (!JOB_LEVEL_XP_TABLE[user.状态.等级]) {
+    if (!JOB_LEVEL_XP_TABLE[user.状态.等级]||safeParseFloat(user.状态.累计经验值)>=1145141919810) {
       break;
     }
 

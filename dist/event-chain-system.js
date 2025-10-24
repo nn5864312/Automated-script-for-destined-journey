@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.event_chain = event_chain;
 function event_chain(eventchain, world) {
+    var _a;
     uninjectPrompts(["event_chain_end"]);
     injectPrompts([
         {
@@ -15,7 +16,8 @@ function event_chain(eventchain, world) {
     ]);
     if (eventchain.开启 == true) {
         eventchain.开启 = true;
-        localStorage.setItem("event_chain_time", `${world.时间}`);
+        deleteVariable("event_chain.time", { type: 'chat' });
+        insertOrAssignVariables({ event_chain: { time: world.时间 } }, { type: 'chat' });
         // 清除之前的事件链注入
         uninjectPrompts(["event_chain"]);
         uninjectPrompts(["event_chain_tips"]);
@@ -50,9 +52,12 @@ function event_chain(eventchain, world) {
         const title = eventchain.标题;
         if (eventchain.琥珀事件 == true) {
             eventchain.琥珀事件 = true;
-            let time = localStorage.getItem("event_chain_time");
-            if (time !== null)
+            // 使用变量系统获取事件链时间
+            const variables = getVariables({ type: 'chat' });
+            const time = (_a = variables === null || variables === void 0 ? void 0 : variables.event_chain) === null || _a === void 0 ? void 0 : _a.time;
+            if (time !== undefined && time !== null) {
                 world.时间 = time;
+            }
         }
         uninjectPrompts(["event_chain"]);
         uninjectPrompts(["event_chain_tips"]);
@@ -62,6 +67,6 @@ function event_chain(eventchain, world) {
         eventchain.结束 = false;
         eventchain.开启 = false;
         eventchain.琥珀事件 = false;
-        localStorage.removeItem("event_chain_time");
+        deleteVariable("event_chain.time", { type: 'chat' });
     }
 }

@@ -15,7 +15,7 @@ function Main_processes(variables: Variables) {
   const world = variables.stat_data.世界;
   const eventchain = variables.stat_data.事件链;
   const fatesystem = variables.stat_data.命运系统;
-  const fatesystemold = variables.display_data.命运系统;
+  const fatesystemold = variables.display_data?.命运系统 || {};
 
   if (!user || !property || !world || !eventchain || !fatesystem) {
     console.error("Core data missing, script terminated");
@@ -31,5 +31,4 @@ function Main_processes(variables: Variables) {
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
-eventOn("message_sent", Main_processes);
 eventOnButton('重新处理变量', Main_processes);

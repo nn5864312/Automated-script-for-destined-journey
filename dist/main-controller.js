@@ -7,12 +7,13 @@ const info_injection_1 = require("./info-injection");
 const event_chain_system_1 = require("./event-chain-system");
 const maintain_1 = require("./maintain");
 function Main_processes(variables) {
+    var _a;
     const user = variables.stat_data.角色;
     const property = variables.stat_data.财产;
     const world = variables.stat_data.世界;
     const eventchain = variables.stat_data.事件链;
     const fatesystem = variables.stat_data.命运系统;
-    const fatesystemold = variables.display_data.命运系统;
+    const fatesystemold = ((_a = variables.display_data) === null || _a === void 0 ? void 0 : _a.命运系统) || {};
     if (!user || !property || !world || !eventchain || !fatesystem) {
         console.error("Core data missing, script terminated");
         return;
@@ -27,5 +28,4 @@ function Main_processes(variables) {
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
-eventOn("message_sent", Main_processes);
 eventOnButton('重新处理变量', Main_processes);
