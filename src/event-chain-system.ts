@@ -34,12 +34,7 @@ export function event_chain(eventchain: EventChain, world: World): void {
       { event_chain: { time: world.时间 } },
       { type: 'chat' }
     );};
-    if(!variables?.event_chain?.counter){
-    insertOrAssignVariables(
-      { event_chain: { counter: 1 } },
-      { type: 'chat' }
-    );};
-    let counter = variables?.event_chain?.counter;
+    let counter = variables?.event_chain?.counter || 1;
     const title = eventchain.标题;
     const step = eventchain.阶段;
     // 注入当前事件链状态
