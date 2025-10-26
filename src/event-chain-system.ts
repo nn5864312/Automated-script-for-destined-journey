@@ -29,12 +29,12 @@ export function event_chain(eventchain: EventChain, world: World): void {
     },
   ]);
   if (star === true) {
-    if(!variables.event_chain.time){
+    if(!variables?.event_chain?.time){
     insertOrAssignVariables(
       { event_chain: { time: world.时间 } },
       { type: 'chat' }
     );};
-    if(!variables.event_chain.counter){
+    if(!variables?.event_chain?.counter){
     insertOrAssignVariables(
       { event_chain: { counter: 1 } },
       { type: 'chat' }
