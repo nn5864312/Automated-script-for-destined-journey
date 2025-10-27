@@ -9,6 +9,12 @@ import { maintain } from './maintain';
 declare function eventOn(event: string, callback: (variables: Variables) => void): void;
 declare function eventOnButton(button: string, callback: (variables: Variables) => void): void;
 declare const tavern_events: {  GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS';};
+declare function injectPrompts(prompts: any[]): void;
+declare function getVariables(option: VariableOptionNormal): Record<string, any>;
+type VariableOptionNormal = {
+  type: 'chat' | 'character' | 'preset' | 'global' | 'message';
+  message_id?: number | 'latest';
+};
 function Main_processes(variables: Variables) {
   const user = variables.stat_data.角色;
   const property = variables.stat_data.财产;
@@ -30,18 +36,23 @@ function Main_processes(variables: Variables) {
   event_chain(eventchain, world);
 }
 
-function Event_chain_only(variables: Variables) {
-  const world = variables.stat_data.世界;
-  const eventchain = variables.stat_data.事件链;
-
-  if (!world || !eventchain) {
-    console.error("Event chain data missing, script terminated");
-    return;
-  }
-  event_chain(eventchain, world);
-}
+function Event_chain_fix() {
+const variables = getVariables({type: 'message', message_id: -2});
+if(variables.event_chain.cache !== null){
+const Prompts = variables.event_chain.cache
+injectPrompts([
+      {
+        id: `event_chain`,
+        content: Prompts,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true,
+      },
+    ]);
+}}
 
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
-eventOn(tavern_events.GENERATION_AFTER_COMMANDS, Event_chain_only);
+eventOn(tavern_events.GENERATION_AFTER_COMMANDS, Event_chain_fix);
 eventOnButton('重新处理变量', Main_processes);

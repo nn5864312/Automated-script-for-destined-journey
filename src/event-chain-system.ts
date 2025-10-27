@@ -8,9 +8,13 @@ import { tobool } from './utils';
 
 declare function uninjectPrompts(ids: string[]): void;
 declare function injectPrompts(prompts: any[]): void;
-declare function getVariables(option: { type: 'chat' | 'character' | 'preset' | 'global' }): Record<string, any>;
-declare function insertOrAssignVariables(variables: Record<string, any>, option: { type: 'chat' | 'character' | 'preset' | 'global' }): Record<string, any>;
-declare function deleteVariable(variable_path: string, option: { type: 'chat' | 'character' | 'preset' | 'global' }): { variables: Record<string, any>; delete_occurred: boolean };
+declare function getVariables(option: VariableOptionNormal): Record<string, any>;
+declare function insertOrAssignVariables(variables: Record<string, any>, option: VariableOptionNormal): Record<string, any>;
+declare function deleteVariable(variable_path: string, option: VariableOptionNormal): { variables: Record<string, any>; delete_occurred: boolean };
+type VariableOptionNormal = {
+  type: 'chat' | 'character' | 'preset' | 'global' | 'message';
+  message_id?: number | 'latest';
+};
 
 export function event_chain(eventchain: EventChain, world: World): void {
   const star = tobool(eventchain.开启);
@@ -59,6 +63,9 @@ export function event_chain(eventchain: EventChain, world: World): void {
         should_scan: true,
       },
     ]);
+    insertOrAssignVariables(
+        { event_chain: { cache: `当前事件为${title}，当前步骤为${step}` } },
+        { type: 'message'});
   };
   // 检查是否结束事件链
   if (end === true) {
