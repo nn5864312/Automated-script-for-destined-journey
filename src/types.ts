@@ -1,4 +1,5 @@
 export interface User {
+    种族: string;
     状态: {
         等级: number;
         升级所需经验: number;
@@ -49,6 +50,7 @@ export interface FateSystem {
   命定之人: {
     [name: string]: {
       好感度: number;
+      种族: string;
     };
   };
 }

@@ -27,7 +27,7 @@ function Main_processes(variables: Variables) {
   uninject();
   experiencegrowth(user);
   CurrencySystem(property);
-  inforead(world);
+  inforead(world, fatesystem, user);
   event_chain(eventchain, world);
 }
 

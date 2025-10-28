@@ -13,7 +13,7 @@ export function safeParseFloat(value: any): number {
  * @param {Array<string>} idsToRemove - 要移除的ID数组
  */
 export function uninject(): void {
-  const idsToRemove = ["AP+", "Location", "Time", "LV+"];
+  const idsToRemove = ["AP+", "Location", "Time", "LV+", "RedlineObjectSpecies", "UserSpecies"];
   uninjectPrompts(idsToRemove);
 }
 export function tobool(value: any): boolean {
