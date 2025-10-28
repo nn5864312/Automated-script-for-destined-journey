@@ -3,7 +3,7 @@
  * 命定之旅自动化脚本
  * 
  * @version 1.0.4
- * @date 2025-10-24
+ * @date 2025-10-28
  * @license MIT
  * 
  * 这是一个自动生成的合并文件，包含以下模块：
@@ -13,7 +13,8 @@
 - experience-level.js
 - currency-system.js
 - info-injection.js
-- event-chain-system.js
+- event-chain-system-current.js
+- event-chain-system-inject.js
 - main-controller.js
  */
 
@@ -380,44 +381,76 @@ function inforead(world) {
 }
 
 // ============================================================
-// event-chain-system.js
+// event-chain-system-current.js
 // ============================================================
 function event_chain(eventchain, world) {
-    var _a;
+    var _a, _b;
     const star = tobool(eventchain.开启);
     const end = tobool(eventchain.结束);
     const recall_time = tobool(eventchain.琥珀事件);
-    uninjectPrompts(["event_chain_end"]);
-    injectPrompts([
-        {
-            id: "event_chain_end",
-            content: eventchain.已完成事件,
-            position: "none",
-            depth: 0,
-            role: "system",
-            should_scan: true,
-        },
-    ]);
+    const title = eventchain.标题;
+    const step = eventchain.阶段;
+    const completed_events = eventchain.已完成事件;
+    const variables = getVariables({ type: 'chat' });
+    uninjectPrompts(["completed_events"]);
+    insertOrAssignVariables({ event_chain: { completed_events: completed_events } }, { type: 'message' });
     if (star === true) {
+        if (((_a = variables === null || variables === void 0 ? void 0 : variables.event_chain) === null || _a === void 0 ? void 0 : _a.time) !== null) {
+            insertOrAssignVariables({ event_chain: { time: world.时间 } }, { type: 'chat' });
+        }
+        ;
+        insertOrAssignVariables({ event_chain: { cache: `当前事件为${title}，当前步骤为${step}` } }, { type: 'message' });
+    }
+    ;
+    if (end === true) {
+        if (recall_time === true) {
+            const time = (_b = variables === null || variables === void 0 ? void 0 : variables.event_chain) === null || _b === void 0 ? void 0 : _b.time;
+            if (time !== null) {
+                world.时间 = time;
+            }
+        }
+        uninjectPrompts([`event_chain`]);
+        uninjectPrompts([`event_chain_tips`]);
+        eventchain.已完成事件.push(`已完成事件${title}`);
+        eventchain.标题 = "";
+        eventchain.阶段 = "";
+        eventchain.结束 = false;
+        eventchain.开启 = false;
+        eventchain.琥珀事件 = false;
         deleteVariable("event_chain.time", { type: 'chat' });
-        insertOrAssignVariables({ event_chain: { time: world.时间 } }, { type: 'chat' });
-        // 清除之前的事件链注入
-        uninjectPrompts(["event_chain"]);
-        uninjectPrompts(["event_chain_tips"]);
-        const title = eventchain.标题;
-        const step = eventchain.阶段;
-        // 注入当前事件链状态
+    }
+}
+
+// ============================================================
+// event-chain-system-inject.js
+// ============================================================
+function event_chain_inject() {
+    const variables = getVariables({ type: 'message', message_id: -2 });
+    if (variables.event_chain.completed_events !== null) {
+        const completed_events = variables.event_chain.completed_events;
         injectPrompts([
             {
-                id: "event_chain",
-                content: `当前事件为${title}，当前步骤为${step}`,
+                id: "event_chain_end",
+                content: completed_events,
                 position: "none",
                 depth: 0,
                 role: "system",
                 should_scan: true,
             },
         ]);
-        // 注入事件链激活提示
+    }
+    if (variables.event_chain.cache !== null) {
+        const Prompts = variables.event_chain.cache;
+        injectPrompts([
+            {
+                id: "completed_events",
+                content: Prompts,
+                position: "none",
+                depth: 0,
+                role: "system",
+                should_scan: true,
+            },
+        ]);
         injectPrompts([
             {
                 id: "event_chain_tips",
@@ -428,27 +461,6 @@ function event_chain(eventchain, world) {
                 should_scan: true,
             },
         ]);
-    }
-    // 检查是否结束事件链
-    if (end === true) {
-        const title = eventchain.标题;
-        if (recall_time === true) {
-            // 使用变量系统获取事件链时间
-            const variables = getVariables({ type: 'chat' });
-            const time = (_a = variables === null || variables === void 0 ? void 0 : variables.event_chain) === null || _a === void 0 ? void 0 : _a.time;
-            if (time !== undefined && time !== null) {
-                world.时间 = time;
-            }
-        }
-        uninjectPrompts(["event_chain"]);
-        uninjectPrompts(["event_chain_tips"]);
-        eventchain.已完成事件.push(`已完成事件${title}`);
-        eventchain.标题 = "";
-        eventchain.阶段 = "";
-        eventchain.结束 = false;
-        eventchain.开启 = false;
-        eventchain.琥珀事件 = false;
-        deleteVariable("event_chain.time", { type: 'chat' });
     }
 }
 
@@ -477,6 +489,7 @@ function Main_processes(variables) {
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
+eventOn(tavern_events.GENERATION_AFTER_COMMANDS, event_chain_inject);
 eventOnButton('重新处理变量', Main_processes);
 
 

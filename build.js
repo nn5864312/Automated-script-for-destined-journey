@@ -9,7 +9,8 @@ const sourceFiles = [
   'experience-level.js',   // 经验与等级系统
   'currency-system.js',    // 货币系统
   'info-injection.js',     // 信息注入
-  'event-chain-system.js', // 事件链系统
+  'event-chain-system-current.js', // 事件链系统
+  'event-chain-system-inject.js', // 事件链系统
   'main-controller.js'     // 主控制器（最后加载）
 ];
 
@@ -84,7 +85,8 @@ async function build() {
         content = content.replace(/\bexperience_level_1\.(\w+)/g, '$1');
         content = content.replace(/\bcurrency_system_1\.(\w+)/g, '$1');
         content = content.replace(/\binfo_injection_1\.(\w+)/g, '$1');
-        content = content.replace(/\bevent_chain_system_1\.(\w+)/g, '$1');
+        content = content.replace(/\bevent_chain_system_current_1\.(\w+)/g, '$1');
+        content = content.replace(/\bevent_chain_system_inject_1\.(\w+)/g, '$1');
         
         // 清理多余的空行
         content = content.replace(/\n{3,}/g, '\n\n');

@@ -4,7 +4,8 @@ const utils_1 = require("./utils");
 const experience_level_1 = require("./experience-level");
 const currency_system_1 = require("./currency-system");
 const info_injection_1 = require("./info-injection");
-const event_chain_system_1 = require("./event-chain-system");
+const event_chain_system_current_1 = require("./event-chain-system-current");
+const event_chain_system_inject_1 = require("./event-chain-system-inject");
 const maintain_1 = require("./maintain");
 function Main_processes(variables) {
     var _a;
@@ -24,8 +25,9 @@ function Main_processes(variables) {
     (0, experience_level_1.experiencegrowth)(user);
     (0, currency_system_1.CurrencySystem)(property);
     (0, info_injection_1.inforead)(world);
-    (0, event_chain_system_1.event_chain)(eventchain, world);
+    (0, event_chain_system_current_1.event_chain)(eventchain, world);
 }
 // ============================ [事件监听] ============================
 eventOn('mag_variable_update_ended', Main_processes);
+eventOn(tavern_events.GENERATION_AFTER_COMMANDS, event_chain_system_inject_1.event_chain_inject);
 eventOnButton('重新处理变量', Main_processes);

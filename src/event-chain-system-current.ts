@@ -2,7 +2,6 @@ import { EventChain, World } from './types';
 import { tobool } from './utils';
 
 declare function uninjectPrompts(ids: string[]): void;
-declare function injectPrompts(prompts: any[]): void;
 declare function getVariables(option: VariableOptionNormal): Record<string, any>;
 declare function insertOrAssignVariables(variables: Record<string, any>, option: VariableOptionNormal): Record<string, any>;
 declare function deleteVariable(variable_path: string, option: VariableOptionNormal): { variables: Record<string, any>; delete_occurred: boolean };
@@ -50,44 +49,5 @@ export function event_chain(eventchain: EventChain, world: World): void {
     eventchain.开启 = false;
     eventchain.琥珀事件 = false;
     deleteVariable("event_chain.time", { type: 'chat' });
-  }
-}
-export function event_chain_inject() {
-  const variables = getVariables({ type: 'message', message_id: -2 });
-  if (variables.event_chain.completed_events !== null) {
-    const completed_events = variables.event_chain.completed_events
-    injectPrompts([
-      {
-        id: "event_chain_end",
-        content: completed_events,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true,
-      },
-    ]);
-  }
-  if (variables.event_chain.cache !== null) {
-    const Prompts = variables.event_chain.cache
-    injectPrompts([
-      {
-        id: "completed_events",
-        content: Prompts,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true,
-      },
-    ]);
-    injectPrompts([
-      {
-        id: "event_chain_tips",
-        content: `core_system:The event chain has been activated, please note<event_chain>`,
-        position: "in_chat",
-        depth: 0,
-        role: "system",
-        should_scan: true,
-      },
-    ]);
   }
 }

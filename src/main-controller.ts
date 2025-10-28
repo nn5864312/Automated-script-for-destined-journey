@@ -3,8 +3,8 @@ import { uninject } from './utils';
 import { experiencegrowth } from './experience-level';
 import { CurrencySystem } from './currency-system';
 import { inforead } from './info-injection';
-import { event_chain } from './event-chain-system';
-import { event_chain_inject } from './event-chain-system';
+import { event_chain } from './event-chain-system-current';
+import { event_chain_inject } from './event-chain-system-inject';
 import { maintain } from './maintain';
 
 declare function eventOn(event: string, callback: (variables: Variables) => void): void;
