@@ -24,7 +24,7 @@ function Main_processes(variables) {
     (0, utils_1.uninject)();
     (0, experience_level_1.experiencegrowth)(user);
     (0, currency_system_1.CurrencySystem)(property);
-    (0, info_injection_1.inforead)(world);
+    (0, info_injection_1.inforead)(world, fatesystem, user);
     (0, event_chain_system_current_1.event_chain)(eventchain, world);
 }
 // ============================ [事件监听] ============================

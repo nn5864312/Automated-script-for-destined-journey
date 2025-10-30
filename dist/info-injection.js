@@ -5,7 +5,35 @@ exports.inforead = inforead;
  * 信息读取与注入模块
  * @param {Object} world - 世界对象
  */
-function inforead(world) {
+function inforead(world, fatesystem, user) {
+    let RedlineObjectSpecies = [];
+    if (fatesystem.命定之人) {
+        const RedlineObject = fatesystem.命定之人;
+        for (const name in RedlineObject) {
+            const CurrentObject = RedlineObject[name];
+            RedlineObjectSpecies.push(CurrentObject.种族);
+        }
+    }
+    injectPrompts([
+        {
+            id: "RedlineObjectSpecies",
+            content: RedlineObjectSpecies,
+            position: "none",
+            depth: 0,
+            role: "system",
+            should_scan: true,
+        },
+    ]);
+    injectPrompts([
+        {
+            id: "UserSpecies",
+            content: user.种族,
+            position: "none",
+            depth: 0,
+            role: "system",
+            should_scan: true,
+        },
+    ]);
     // 注入地点信息
     injectPrompts([
         {

@@ -2,8 +2,8 @@
  * Automated Script for Destined Journey
  * 命定之旅自动化脚本
  * 
- * @version 1.0.4
- * @date 2025-10-28
+ * @version 1.1.4
+ * @date 2025-10-30
  * @license MIT
  * 
  * 这是一个自动生成的合并文件，包含以下模块：
@@ -38,7 +38,7 @@ function safeParseFloat(value) {
  * @param {Array<string>} idsToRemove - 要移除的ID数组
  */
 function uninject() {
-    const idsToRemove = ["AP+", "Location", "Time", "LV+"];
+    const idsToRemove = ["AP+", "Location", "Time", "LV+", "RedlineObjectSpecies", "UserSpecies"];
     uninjectPrompts(idsToRemove);
 }
 function tobool(value) {
@@ -355,7 +355,35 @@ function CurrencySystem(property) {
  * 信息读取与注入模块
  * @param {Object} world - 世界对象
  */
-function inforead(world) {
+function inforead(world, fatesystem, user) {
+    let RedlineObjectSpecies = [];
+    if (fatesystem.命定之人) {
+        const RedlineObject = fatesystem.命定之人;
+        for (const name in RedlineObject) {
+            const CurrentObject = RedlineObject[name];
+            RedlineObjectSpecies.push(CurrentObject.种族);
+        }
+    }
+    injectPrompts([
+        {
+            id: "RedlineObjectSpecies",
+            content: RedlineObjectSpecies,
+            position: "none",
+            depth: 0,
+            role: "system",
+            should_scan: true,
+        },
+    ]);
+    injectPrompts([
+        {
+            id: "UserSpecies",
+            content: user.种族,
+            position: "none",
+            depth: 0,
+            role: "system",
+            should_scan: true,
+        },
+    ]);
     // 注入地点信息
     injectPrompts([
         {
@@ -426,7 +454,7 @@ function event_chain(eventchain, world) {
 // ============================================================
 function event_chain_inject() {
     const variables = getVariables({ type: 'message', message_id: -2 });
-    if (variables.event_chain.completed_events !== null) {
+    if (variables.event_chain.completed_events) {
         const completed_events = variables.event_chain.completed_events;
         injectPrompts([
             {
@@ -439,7 +467,7 @@ function event_chain_inject() {
             },
         ]);
     }
-    if (variables.event_chain.cache !== null) {
+    if (variables.event_chain.cache) {
         const Prompts = variables.event_chain.cache;
         injectPrompts([
             {
@@ -484,7 +512,7 @@ function Main_processes(variables) {
     uninject();
     experiencegrowth(user);
     CurrencySystem(property);
-    inforead(world);
+    inforead(world, fatesystem, user);
     event_chain(eventchain, world);
 }
 // ============================ [事件监听] ============================

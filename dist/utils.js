@@ -17,7 +17,7 @@ function safeParseFloat(value) {
  * @param {Array<string>} idsToRemove - 要移除的ID数组
  */
 function uninject() {
-    const idsToRemove = ["AP+", "Location", "Time", "LV+"];
+    const idsToRemove = ["AP+", "Location", "Time", "LV+", "RedlineObjectSpecies", "UserSpecies"];
     uninjectPrompts(idsToRemove);
 }
 function tobool(value) {
