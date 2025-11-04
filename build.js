@@ -55,7 +55,6 @@ async function build() {
         platform: 'browser',
         format: 'iife',
         target: 'es2020',
-        charset: 'utf8',
         minify: false,
         sourcemap: false,
         banner: {
@@ -64,6 +63,10 @@ async function build() {
         charset: 'utf8',
       });
       log('✓ TypeScript 打包编译完成', 'green');
+      const distFile = 'dist/automated-script-for-destined-journey.js';
+      let content = await fs.readFile(distFile, 'utf8');
+      content = content.replace(/\\u([\dA-F]{4})/gi, (_, g) => String.fromCharCode(parseInt(g, 16)));
+      await fs.writeFile(distFile, content, 'utf8');
       log(`  构建日期: ${buildDate} ${buildTime}`, 'cyan');
     } catch (error) {
       log('✗ TypeScript 打包编译失败', 'red');
