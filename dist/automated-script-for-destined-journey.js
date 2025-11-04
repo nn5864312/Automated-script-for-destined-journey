@@ -3,7 +3,7 @@
 // 命定的异世界开发之旅自动化脚本
 // ============================================================
 // Version: 1.1.4
-// Build Date: 2025-11-02 13:34:47
+// Build Date: 2025-11-04 02:17:52
 // Author: The-poem-of-destiny
 // License: MIT
 // Repository: git+https://github.com/The-poem-of-destiny/Automated-script-for-destined-journey.git
@@ -32,12 +32,12 @@
 
   // src/config.ts
   var MILESTONE_LEVELS = {
-    5: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "\u7B2C\u4E8C\u5C42\u7EA7/\u4E2D\u575A" },
-    9: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "\u7B2C\u4E09\u5C42\u7EA7/\u7CBE\u82F1" },
-    13: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "\u7B2C\u56DB\u5C42\u7EA7/\u53F2\u8BD7" },
-    17: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "\u7B2C\u4E94\u5C42\u7EA7/\u4F20\u8BF4" },
-    21: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "\u7B2C\u516D\u5C42\u7EA7/\u795E\u8BDD" },
-    25: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "\u7B2C\u4E03\u5C42\u7EA7/\u767B\u795E" }
+    5: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第二层级/中坚" },
+    9: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第三层级/精英" },
+    13: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第四层级/史诗" },
+    17: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第五层级/传说" },
+    21: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第六层级/神话" },
+    25: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第七层级/登神" }
   };
   var JOB_LEVEL_XP_TABLE = {
     0: 0,
@@ -75,17 +75,17 @@
 
   // src/experience-level.ts
   function experiencegrowth(user) {
-    const currentLevel = user.\u72B6\u6001.\u7B49\u7EA7;
+    const currentLevel = user.状态.等级;
     let hasLeveledUp = false;
-    while (safeParseFloat(user.\u72B6\u6001.\u7D2F\u8BA1\u7ECF\u9A8C\u503C) >= safeParseFloat(user.\u72B6\u6001.\u5347\u7EA7\u6240\u9700\u7ECF\u9A8C)) {
-      if (!JOB_LEVEL_XP_TABLE[user.\u72B6\u6001.\u7B49\u7EA7] || safeParseFloat(user.\u72B6\u6001.\u7D2F\u8BA1\u7ECF\u9A8C\u503C) >= 1145141919810) {
+    while (safeParseFloat(user.状态.累计经验值) >= safeParseFloat(user.状态.升级所需经验)) {
+      if (!JOB_LEVEL_XP_TABLE[user.状态.等级] || safeParseFloat(user.状态.累计经验值) >= 1145141919810) {
         break;
       }
-      user.\u72B6\u6001.\u7B49\u7EA7 = safeParseFloat(user.\u72B6\u6001.\u7B49\u7EA7) + 1;
+      user.状态.等级 = safeParseFloat(user.状态.等级) + 1;
       hasLeveledUp = true;
-      user.\u72B6\u6001.\u5347\u7EA7\u6240\u9700\u7ECF\u9A8C = JOB_LEVEL_XP_TABLE[user.\u72B6\u6001.\u7B49\u7EA7];
-      if (user.\u72B6\u6001.\u7B49\u7EA7 % GAME_CONFIG.AP_Acquisition_Level === 0) {
-        user.\u5C5E\u6027.\u5C5E\u6027\u70B9 = safeParseFloat(user.\u5C5E\u6027.\u5C5E\u6027\u70B9) + 1;
+      user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
+      if (user.状态.等级 % GAME_CONFIG.AP_Acquisition_Level === 0) {
+        user.属性.属性点 = safeParseFloat(user.属性.属性点) + 1;
         injectPrompts([
           {
             id: "AP+",
@@ -97,14 +97,14 @@
           }
         ]);
       }
-      const milestone = MILESTONE_LEVELS[user.\u72B6\u6001.\u7B49\u7EA7];
+      const milestone = MILESTONE_LEVELS[user.状态.等级];
       if (milestone) {
-        user.\u5C5E\u6027.\u529B\u91CF = safeParseFloat(user.\u5C5E\u6027.\u529B\u91CF) + milestone.strength;
-        user.\u5C5E\u6027.\u654F\u6377 = safeParseFloat(user.\u5C5E\u6027.\u654F\u6377) + milestone.agility;
-        user.\u5C5E\u6027.\u4F53\u8D28 = safeParseFloat(user.\u5C5E\u6027.\u4F53\u8D28) + milestone.constitution;
-        user.\u5C5E\u6027.\u667A\u529B = safeParseFloat(user.\u5C5E\u6027.\u667A\u529B) + milestone.intelligence;
-        user.\u5C5E\u6027.\u7CBE\u795E = safeParseFloat(user.\u5C5E\u6027.\u7CBE\u795E) + milestone.spirit;
-        user.\u72B6\u6001.\u751F\u547D\u5C42\u7EA7 = milestone.tier;
+        user.属性.力量 = safeParseFloat(user.属性.力量) + milestone.strength;
+        user.属性.敏捷 = safeParseFloat(user.属性.敏捷) + milestone.agility;
+        user.属性.体质 = safeParseFloat(user.属性.体质) + milestone.constitution;
+        user.属性.智力 = safeParseFloat(user.属性.智力) + milestone.intelligence;
+        user.属性.精神 = safeParseFloat(user.属性.精神) + milestone.spirit;
+        user.状态.生命层级 = milestone.tier;
       }
     }
     if (hasLeveledUp) {
@@ -114,7 +114,7 @@
           position: "in_chat",
           role: "system",
           depth: 0,
-          content: `core_system: The {{user}} level increased from ${currentLevel} to ${user.\u72B6\u6001.\u7B49\u7EA7}`,
+          content: `core_system: The {{user}} level increased from ${currentLevel} to ${user.状态.等级}`,
           should_scan: true
         }
       ]);
@@ -123,9 +123,9 @@
 
   // src/currency-system.ts
   function CurrencySystem(property) {
-    let GP = safeParseFloat(property.\u8D27\u5E01.\u91D1\u5E01);
-    let SP = safeParseFloat(property.\u8D27\u5E01.\u94F6\u5E01);
-    let CP = safeParseFloat(property.\u8D27\u5E01.\u94DC\u5E01);
+    let GP = safeParseFloat(property.货币.金币);
+    let SP = safeParseFloat(property.货币.银币);
+    let CP = safeParseFloat(property.货币.铜币);
     function handleCurrencyExchange() {
       let currencyCleared = false;
       if (GP < 0 && !currencyCleared) {
@@ -242,19 +242,19 @@
       }
     }
     handleCurrencyExchange();
-    property.\u8D27\u5E01.\u91D1\u5E01 = Math.max(0, Math.floor(GP));
-    property.\u8D27\u5E01.\u94F6\u5E01 = Math.max(0, Math.floor(SP));
-    property.\u8D27\u5E01.\u94DC\u5E01 = Math.floor(CP);
+    property.货币.金币 = Math.max(0, Math.floor(GP));
+    property.货币.银币 = Math.max(0, Math.floor(SP));
+    property.货币.铜币 = Math.floor(CP);
   }
 
   // src/info-injection.ts
   function inforead(world, fatesystem, user) {
     let RedlineObjectSpecies = [];
-    if (fatesystem.\u547D\u5B9A\u4E4B\u4EBA) {
-      const RedlineObject = fatesystem.\u547D\u5B9A\u4E4B\u4EBA;
+    if (fatesystem.命定之人) {
+      const RedlineObject = fatesystem.命定之人;
       for (const name in RedlineObject) {
         const CurrentObject = RedlineObject[name];
-        RedlineObjectSpecies.push(CurrentObject.\u79CD\u65CF);
+        RedlineObjectSpecies.push(CurrentObject.种族);
       }
     }
     injectPrompts([
@@ -270,7 +270,7 @@
     injectPrompts([
       {
         id: "UserSpecies",
-        content: user.\u79CD\u65CF,
+        content: user.种族,
         position: "none",
         depth: 0,
         role: "system",
@@ -280,7 +280,7 @@
     injectPrompts([
       {
         id: "Location",
-        content: world.\u5730\u70B9,
+        content: world.地点,
         position: "none",
         depth: 0,
         role: "system",
@@ -290,7 +290,7 @@
     injectPrompts([
       {
         id: "Time",
-        content: world.\u65F6\u95F4,
+        content: world.时间,
         position: "none",
         depth: 0,
         role: "system",
@@ -301,12 +301,12 @@
 
   // src/event-chain-system-current.ts
   function event_chain(eventchain, world) {
-    const star = tobool(eventchain.\u5F00\u542F);
-    const end = tobool(eventchain.\u7ED3\u675F);
-    const recall_time = tobool(eventchain.\u7425\u73C0\u4E8B\u4EF6);
-    const title = eventchain.\u6807\u9898;
-    const step = eventchain.\u9636\u6BB5;
-    const completed_events = eventchain.\u5DF2\u5B8C\u6210\u4E8B\u4EF6;
+    const star = tobool(eventchain.开启);
+    const end = tobool(eventchain.结束);
+    const recall_time = tobool(eventchain.琥珀事件);
+    const title = eventchain.标题;
+    const step = eventchain.阶段;
+    const completed_events = eventchain.已完成事件;
     const variables = getVariables({ type: "chat" });
     uninjectPrompts(["completed_events"]);
     insertOrAssignVariables(
@@ -316,13 +316,13 @@
     if (star === true) {
       if (variables?.event_chain?.time !== null) {
         insertOrAssignVariables(
-          { event_chain: { time: world.\u65F6\u95F4 } },
+          { event_chain: { time: world.时间 } },
           { type: "chat" }
         );
       }
       ;
       insertOrAssignVariables(
-        { event_chain: { cache: `\u5F53\u524D\u4E8B\u4EF6\u4E3A${title}\uFF0C\u5F53\u524D\u6B65\u9AA4\u4E3A${step}` } },
+        { event_chain: { cache: `当前事件为${title}，当前步骤为${step}` } },
         { type: "message" }
       );
     }
@@ -331,17 +331,17 @@
       if (recall_time === true) {
         const time = variables?.event_chain?.time;
         if (time !== null) {
-          world.\u65F6\u95F4 = time;
+          world.时间 = time;
         }
       }
       uninjectPrompts([`event_chain`]);
       uninjectPrompts([`event_chain_tips`]);
-      eventchain.\u5DF2\u5B8C\u6210\u4E8B\u4EF6.push(`\u5DF2\u5B8C\u6210\u4E8B\u4EF6${title}`);
-      eventchain.\u6807\u9898 = "";
-      eventchain.\u9636\u6BB5 = "";
-      eventchain.\u7ED3\u675F = false;
-      eventchain.\u5F00\u542F = false;
-      eventchain.\u7425\u73C0\u4E8B\u4EF6 = false;
+      eventchain.已完成事件.push(`已完成事件${title}`);
+      eventchain.标题 = "";
+      eventchain.阶段 = "";
+      eventchain.结束 = false;
+      eventchain.开启 = false;
+      eventchain.琥珀事件 = false;
       deleteVariable("event_chain.time", { type: "chat" });
       deleteVariable("event_chain.cache", { type: "message" });
     }
@@ -390,50 +390,50 @@
 
   // src/maintain.ts
   function maintain(user, fatesystem, fatesystemold) {
-    user.\u8D44\u6E90.\u751F\u547D\u503C = Math.min(Math.max(safeParseFloat(user.\u8D44\u6E90.\u751F\u547D\u503C), 0), safeParseFloat(user.\u8D44\u6E90.\u751F\u547D\u503C\u4E0A\u9650));
-    user.\u8D44\u6E90.\u6CD5\u529B\u503C = Math.min(Math.max(safeParseFloat(user.\u8D44\u6E90.\u6CD5\u529B\u503C), 0), safeParseFloat(user.\u8D44\u6E90.\u6CD5\u529B\u503C\u4E0A\u9650));
-    user.\u8D44\u6E90.\u4F53\u529B\u503C = Math.min(Math.max(safeParseFloat(user.\u8D44\u6E90.\u4F53\u529B\u503C), 0), safeParseFloat(user.\u8D44\u6E90.\u4F53\u529B\u503C\u4E0A\u9650));
-    user.\u5C5E\u6027.\u529B\u91CF = Math.min(Math.max(safeParseFloat(user.\u5C5E\u6027.\u529B\u91CF), 0), 20);
-    user.\u5C5E\u6027.\u654F\u6377 = Math.min(Math.max(safeParseFloat(user.\u5C5E\u6027.\u654F\u6377), 0), 20);
-    user.\u5C5E\u6027.\u4F53\u8D28 = Math.min(Math.max(safeParseFloat(user.\u5C5E\u6027.\u4F53\u8D28), 0), 20);
-    user.\u5C5E\u6027.\u667A\u529B = Math.min(Math.max(safeParseFloat(user.\u5C5E\u6027.\u667A\u529B), 0), 20);
-    user.\u5C5E\u6027.\u7CBE\u795E = Math.min(Math.max(safeParseFloat(user.\u5C5E\u6027.\u7CBE\u795E), 0), 20);
-    const RedlineObject = fatesystem.\u547D\u5B9A\u4E4B\u4EBA;
-    const RedlineObjectold = fatesystemold.\u547D\u5B9A\u4E4B\u4EBA;
+    user.资源.生命值 = Math.min(Math.max(safeParseFloat(user.资源.生命值), 0), safeParseFloat(user.资源.生命值上限));
+    user.资源.法力值 = Math.min(Math.max(safeParseFloat(user.资源.法力值), 0), safeParseFloat(user.资源.法力值上限));
+    user.资源.体力值 = Math.min(Math.max(safeParseFloat(user.资源.体力值), 0), safeParseFloat(user.资源.体力值上限));
+    user.属性.力量 = Math.min(Math.max(safeParseFloat(user.属性.力量), 0), 20);
+    user.属性.敏捷 = Math.min(Math.max(safeParseFloat(user.属性.敏捷), 0), 20);
+    user.属性.体质 = Math.min(Math.max(safeParseFloat(user.属性.体质), 0), 20);
+    user.属性.智力 = Math.min(Math.max(safeParseFloat(user.属性.智力), 0), 20);
+    user.属性.精神 = Math.min(Math.max(safeParseFloat(user.属性.精神), 0), 20);
+    const RedlineObject = fatesystem.命定之人;
+    const RedlineObjectold = fatesystemold.命定之人;
     for (const name in RedlineObject) {
       const CurrentObject = RedlineObject[name];
-      const CurrentFavorability = safeParseFloat(CurrentObject.\u597D\u611F\u5EA6);
+      const CurrentFavorability = safeParseFloat(CurrentObject.好感度);
       const OldObject = RedlineObjectold[name];
       if (OldObject) {
-        const OldFavorability = safeParseFloat(OldObject.\u597D\u611F\u5EA6);
+        const OldFavorability = safeParseFloat(OldObject.好感度);
         let diff = CurrentFavorability - OldFavorability;
         if (diff > 5) {
-          CurrentObject.\u597D\u611F\u5EA6 = OldFavorability + 5;
+          CurrentObject.好感度 = OldFavorability + 5;
         } else if (diff < -5) {
-          CurrentObject.\u597D\u611F\u5EA6 = OldFavorability - 5;
+          CurrentObject.好感度 = OldFavorability - 5;
         }
       }
-      CurrentObject.\u597D\u611F\u5EA6 = Math.max(-100, Math.min(CurrentObject.\u597D\u611F\u5EA6, 100));
+      CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
     }
-    user.\u72B6\u6001.\u7B49\u7EA7 = Math.max(0, Math.min(user.\u72B6\u6001.\u7B49\u7EA7, 25));
-    user.\u72B6\u6001.\u5347\u7EA7\u6240\u9700\u7ECF\u9A8C = JOB_LEVEL_XP_TABLE[user.\u72B6\u6001.\u7B49\u7EA7];
-    const currentLevel = user.\u72B6\u6001.\u7B49\u7EA7;
+    user.状态.等级 = Math.max(0, Math.min(user.状态.等级, 25));
+    user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
+    const currentLevel = user.状态.等级;
     if (currentLevel > 0) {
       const requiredXpForPreviousLevel = JOB_LEVEL_XP_TABLE[currentLevel - 1];
-      if (safeParseFloat(user.\u72B6\u6001.\u7D2F\u8BA1\u7ECF\u9A8C\u503C) < requiredXpForPreviousLevel) {
-        user.\u72B6\u6001.\u7D2F\u8BA1\u7ECF\u9A8C\u503C = requiredXpForPreviousLevel;
+      if (safeParseFloat(user.状态.累计经验值) < requiredXpForPreviousLevel) {
+        user.状态.累计经验值 = requiredXpForPreviousLevel;
       }
     }
   }
 
   // src/main-controller.ts
   function Main_processes(variables) {
-    const user = variables.stat_data.\u89D2\u8272;
-    const property = variables.stat_data.\u8D22\u4EA7;
-    const world = variables.stat_data.\u4E16\u754C;
-    const eventchain = variables.stat_data.\u4E8B\u4EF6\u94FE;
-    const fatesystem = variables.stat_data.\u547D\u5B9A\u7CFB\u7EDF;
-    const fatesystemold = variables.display_data?.\u547D\u5B9A\u7CFB\u7EDF || {};
+    const user = variables.stat_data.角色;
+    const property = variables.stat_data.财产;
+    const world = variables.stat_data.世界;
+    const eventchain = variables.stat_data.事件链;
+    const fatesystem = variables.stat_data.命定系统;
+    const fatesystemold = variables.display_data?.命定系统 || {};
     if (!user || !property || !world || !eventchain || !fatesystem) {
       console.error("Core data missing, script terminated");
       return;
@@ -447,5 +447,5 @@
   }
   eventOn("mag_variable_update_ended", Main_processes);
   eventOn(tavern_events.GENERATION_AFTER_COMMANDS, event_chain_inject);
-  eventOnButton("\u91CD\u65B0\u5904\u7406\u53D8\u91CF", Main_processes);
+  eventOnButton("重新处理变量", Main_processes);
 })();
