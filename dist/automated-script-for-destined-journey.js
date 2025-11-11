@@ -3,7 +3,7 @@
 // 命定的异世界开发之旅自动化脚本
 // ============================================================
 // Version: 1.1.4
-// Build Date: 2025-11-04 02:17:52
+// Build Date: 2025-11-11 16:32:07
 // Author: The-poem-of-destiny
 // License: MIT
 // Repository: git+https://github.com/The-poem-of-destiny/Automated-script-for-destined-journey.git
@@ -11,25 +11,6 @@
 
 "use strict";
 (() => {
-  // src/utils.ts
-  function safeParseFloat(value) {
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : num;
-  }
-  function uninject() {
-    const idsToRemove = ["AP+", "Location", "Time", "LV+", "RedlineObjectSpecies", "UserSpecies"];
-    uninjectPrompts(idsToRemove);
-  }
-  function tobool(value) {
-    if (typeof value === "boolean") {
-      return value;
-    }
-    if (typeof value === "string") {
-      return value.toLowerCase() === "true";
-    }
-    return Boolean(value);
-  }
-
   // src/config.ts
   var MILESTONE_LEVELS = {
     5: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第二层级/中坚" },
@@ -73,52 +54,23 @@
     AP_Acquisition_Level: 1
   };
 
-  // src/experience-level.ts
-  function experiencegrowth(user) {
-    const currentLevel = user.状态.等级;
-    let hasLeveledUp = false;
-    while (safeParseFloat(user.状态.累计经验值) >= safeParseFloat(user.状态.升级所需经验)) {
-      if (!JOB_LEVEL_XP_TABLE[user.状态.等级] || safeParseFloat(user.状态.累计经验值) >= 1145141919810) {
-        break;
-      }
-      user.状态.等级 = safeParseFloat(user.状态.等级) + 1;
-      hasLeveledUp = true;
-      user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
-      if (user.状态.等级 % GAME_CONFIG.AP_Acquisition_Level === 0) {
-        user.属性.属性点 = safeParseFloat(user.属性.属性点) + 1;
-        injectPrompts([
-          {
-            id: "AP+",
-            position: "in_chat",
-            role: "system",
-            depth: 0,
-            content: "core_system: The {{user}} has reached a specific level and obtained attribute points. Guide the {{user}} to use attribute points",
-            should_scan: true
-          }
-        ]);
-      }
-      const milestone = MILESTONE_LEVELS[user.状态.等级];
-      if (milestone) {
-        user.属性.力量 = safeParseFloat(user.属性.力量) + milestone.strength;
-        user.属性.敏捷 = safeParseFloat(user.属性.敏捷) + milestone.agility;
-        user.属性.体质 = safeParseFloat(user.属性.体质) + milestone.constitution;
-        user.属性.智力 = safeParseFloat(user.属性.智力) + milestone.intelligence;
-        user.属性.精神 = safeParseFloat(user.属性.精神) + milestone.spirit;
-        user.状态.生命层级 = milestone.tier;
-      }
+  // src/utils.ts
+  function safeParseFloat(value) {
+    const num = parseFloat(value);
+    return isNaN(num) ? 0 : num;
+  }
+  function uninject() {
+    const idsToRemove = ["AP+", "Location", "Time", "LV+", "RedlineObjectSpecies", "UserSpecies"];
+    uninjectPrompts(idsToRemove);
+  }
+  function tobool(value) {
+    if (typeof value === "boolean") {
+      return value;
     }
-    if (hasLeveledUp) {
-      injectPrompts([
-        {
-          id: "LV+",
-          position: "in_chat",
-          role: "system",
-          depth: 0,
-          content: `core_system: The {{user}} level increased from ${currentLevel} to ${user.状态.等级}`,
-          should_scan: true
-        }
-      ]);
+    if (typeof value === "string") {
+      return value.toLowerCase() === "true";
     }
+    return Boolean(value);
   }
 
   // src/currency-system.ts
@@ -247,58 +199,6 @@
     property.货币.铜币 = Math.floor(CP);
   }
 
-  // src/info-injection.ts
-  function inforead(world, fatesystem, user) {
-    let RedlineObjectSpecies = [];
-    if (fatesystem.命定之人) {
-      const RedlineObject = fatesystem.命定之人;
-      for (const name in RedlineObject) {
-        const CurrentObject = RedlineObject[name];
-        RedlineObjectSpecies.push(CurrentObject.种族);
-      }
-    }
-    injectPrompts([
-      {
-        id: "RedlineObjectSpecies",
-        content: RedlineObjectSpecies,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    injectPrompts([
-      {
-        id: "UserSpecies",
-        content: user.种族,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    injectPrompts([
-      {
-        id: "Location",
-        content: world.地点,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    injectPrompts([
-      {
-        id: "Time",
-        content: world.时间,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-  }
-
   // src/event-chain-system-current.ts
   function event_chain(eventchain, world) {
     const star = tobool(eventchain.开启);
@@ -388,8 +288,108 @@
     }
   }
 
+  // src/experience-level.ts
+  function experiencegrowth(user) {
+    const currentLevel = user.状态.等级;
+    let hasLeveledUp = false;
+    while (safeParseFloat(user.状态.累计经验值) >= safeParseFloat(user.状态.升级所需经验)) {
+      if (!JOB_LEVEL_XP_TABLE[user.状态.等级] || safeParseFloat(user.状态.累计经验值) >= 1145141919810) {
+        break;
+      }
+      user.状态.等级 = safeParseFloat(user.状态.等级) + 1;
+      hasLeveledUp = true;
+      user.状态.升级所需经验 = JOB_LEVEL_XP_TABLE[user.状态.等级];
+      if (user.状态.等级 % GAME_CONFIG.AP_Acquisition_Level === 0) {
+        user.属性.属性点 = safeParseFloat(user.属性.属性点) + 1;
+        injectPrompts([
+          {
+            id: "AP+",
+            position: "in_chat",
+            role: "system",
+            depth: 0,
+            content: "core_system: The {{user}} has reached a specific level and obtained attribute points. Guide the {{user}} to use attribute points",
+            should_scan: true
+          }
+        ]);
+      }
+      const milestone = MILESTONE_LEVELS[user.状态.等级];
+      if (milestone) {
+        user.属性.力量 = safeParseFloat(user.属性.力量) + milestone.strength;
+        user.属性.敏捷 = safeParseFloat(user.属性.敏捷) + milestone.agility;
+        user.属性.体质 = safeParseFloat(user.属性.体质) + milestone.constitution;
+        user.属性.智力 = safeParseFloat(user.属性.智力) + milestone.intelligence;
+        user.属性.精神 = safeParseFloat(user.属性.精神) + milestone.spirit;
+        user.状态.生命层级 = milestone.tier;
+      }
+    }
+    if (hasLeveledUp) {
+      injectPrompts([
+        {
+          id: "LV+",
+          position: "in_chat",
+          role: "system",
+          depth: 0,
+          content: `core_system: The {{user}} level increased from ${currentLevel} to ${user.状态.等级}`,
+          should_scan: true
+        }
+      ]);
+    }
+  }
+
+  // src/info-injection.ts
+  function inforead(world, fatesystem, user) {
+    let RedlineObjectSpecies = [];
+    if (fatesystem.命定之人) {
+      const RedlineObject = fatesystem.命定之人;
+      for (const name in RedlineObject) {
+        const CurrentObject = RedlineObject[name];
+        RedlineObjectSpecies.push(CurrentObject.种族);
+      }
+    }
+    injectPrompts([
+      {
+        id: "RedlineObjectSpecies",
+        content: RedlineObjectSpecies,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    injectPrompts([
+      {
+        id: "UserSpecies",
+        content: user.种族,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    injectPrompts([
+      {
+        id: "Location",
+        content: world.地点,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    injectPrompts([
+      {
+        id: "Time",
+        content: world.时间,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+  }
+
   // src/maintain.ts
-  function maintain(user, fatesystem, fatesystemold) {
+  function maintain(user, fatesystem) {
     user.资源.生命值 = Math.min(Math.max(safeParseFloat(user.资源.生命值), 0), safeParseFloat(user.资源.生命值上限));
     user.资源.法力值 = Math.min(Math.max(safeParseFloat(user.资源.法力值), 0), safeParseFloat(user.资源.法力值上限));
     user.资源.体力值 = Math.min(Math.max(safeParseFloat(user.资源.体力值), 0), safeParseFloat(user.资源.体力值上限));
@@ -399,20 +399,8 @@
     user.属性.智力 = Math.min(Math.max(safeParseFloat(user.属性.智力), 0), 20);
     user.属性.精神 = Math.min(Math.max(safeParseFloat(user.属性.精神), 0), 20);
     const RedlineObject = fatesystem.命定之人;
-    const RedlineObjectold = fatesystemold.命定之人;
     for (const name in RedlineObject) {
       const CurrentObject = RedlineObject[name];
-      const CurrentFavorability = safeParseFloat(CurrentObject.好感度);
-      const OldObject = RedlineObjectold[name];
-      if (OldObject) {
-        const OldFavorability = safeParseFloat(OldObject.好感度);
-        let diff = CurrentFavorability - OldFavorability;
-        if (diff > 5) {
-          CurrentObject.好感度 = OldFavorability + 5;
-        } else if (diff < -5) {
-          CurrentObject.好感度 = OldFavorability - 5;
-        }
-      }
       CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
     }
     user.状态.等级 = Math.max(0, Math.min(user.状态.等级, 25));
@@ -433,19 +421,21 @@
     const world = variables.stat_data.世界;
     const eventchain = variables.stat_data.事件链;
     const fatesystem = variables.stat_data.命定系统;
-    const fatesystemold = variables.display_data?.命定系统 || {};
     if (!user || !property || !world || !eventchain || !fatesystem) {
       console.error("Core data missing, script terminated");
       return;
     }
-    maintain(user, fatesystem, fatesystemold);
+    maintain(user, fatesystem);
     uninject();
     experiencegrowth(user);
     CurrencySystem(property);
     inforead(world, fatesystem, user);
     event_chain(eventchain, world);
+    event_chain_inject();
   }
   eventOn("mag_variable_update_ended", Main_processes);
   eventOn(tavern_events.GENERATION_AFTER_COMMANDS, event_chain_inject);
+  eventOn(tavern_events.MESSAGE_SENT, event_chain_inject);
+  eventOn(tavern_events.MESSAGE_UPDATED, event_chain_inject);
   eventOnButton("重新处理变量", Main_processes);
 })();
