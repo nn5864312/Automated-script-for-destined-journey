@@ -3,7 +3,7 @@
 // 命定的异世界开发之旅自动化脚本
 // ============================================================
 // Version: 1.1.4
-// Build Date: 2025-11-24 09:50:38
+// Build Date: 2025-12-15 08:47:03
 // Author: The-poem-of-destiny
 // License: MIT
 // Repository: git+https://github.com/The-poem-of-destiny/Automated-script-for-destined-journey.git
@@ -11,6 +11,100 @@
 
 "use strict";
 (() => {
+  // src/injectEventPrompts.ts
+  function injectEventPrompts() {
+    const variables = getVariables({ type: "message", message_id: -2 });
+    const completed_events = variables?.date?.event?.completed_events || {};
+    injectPrompts([
+      {
+        id: "completed_events",
+        content: completed_events,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    if (variables?.date?.event?.cache) {
+      const Prompts = variables?.date?.event?.cache;
+      injectPrompts([
+        {
+          id: "event",
+          content: Prompts,
+          position: "none",
+          depth: 0,
+          role: "system",
+          should_scan: true
+        }
+      ]);
+      injectPrompts([
+        {
+          id: "event_tips",
+          content: `core_system:The event chain has been activated, please note<event>`,
+          position: "in_chat",
+          depth: 0,
+          role: "system",
+          should_scan: true
+        }
+      ]);
+    }
+  }
+
+  // src/injectGameInfo.ts
+  function injectGameInfo(variables, old_variables) {
+    const world = variables.stat_data.世界;
+    const user = variables.stat_data.角色;
+    const fatesystem = variables.stat_data.命定系统;
+    let redline_object_species = [];
+    if (fatesystem.命定之人) {
+      const redline_object = fatesystem.命定之人;
+      for (const name in redline_object) {
+        const current_object = redline_object[name];
+        redline_object_species.push(current_object.种族);
+      }
+    }
+    injectPrompts([
+      {
+        id: "RedlineObjectSpecies",
+        content: redline_object_species,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    injectPrompts([
+      {
+        id: "UserSpecies",
+        content: user.种族,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    injectPrompts([
+      {
+        id: "Location",
+        content: world.地点,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+    injectPrompts([
+      {
+        id: "Time",
+        content: world.时间,
+        position: "none",
+        depth: 0,
+        role: "system",
+        should_scan: true
+      }
+    ]);
+  }
+
   // src/config.ts
   var MILESTONE_LEVELS = {
     5: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第二层级/中坚" },
@@ -20,7 +114,7 @@
     21: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第六层级/神话" },
     25: { strength: 1, agility: 1, constitution: 1, intelligence: 1, spirit: 1, tier: "第七层级/登神" }
   };
-  var JOB_LEVEL_XP_TABLE = {
+  var LEVEL_XP_TABLE = {
     0: 0,
     1: 23,
     2: 106,
@@ -54,30 +148,40 @@
     AP_Acquisition_Level: 1
   };
 
-  // src/utils.ts
-  function safeParseFloat(value) {
-    const num = parseFloat(value);
-    return isNaN(num) ? 0 : num;
-  }
-  function uninject() {
-    const idsToRemove = ["AP+", "Location", "Time", "LV+", "RedlineObjectSpecies", "UserSpecies"];
-    uninjectPrompts(idsToRemove);
-  }
-  function tobool(value) {
-    if (typeof value === "boolean") {
-      return value;
+  // src/maintain.ts
+  function maintain(variables, old_variables) {
+    const user = variables.stat_data.角色;
+    if (user.等级 < 13) {
+      variables.stat_data.登神长阶.是否开启 = false;
+    } else {
+      variables.stat_data.登神长阶.是否开启 = true;
     }
-    if (typeof value === "string") {
-      return value.toLowerCase() === "true";
+    if (user.等级 !== 1 && old_variables?.stat_data?.角色?.等级) {
+      user.等级 = old_variables.stat_data.角色.等级;
     }
-    return Boolean(value);
+    user.升级所需经验 = LEVEL_XP_TABLE[user.等级];
+    const current_level = user.等级;
+    if (current_level > 0) {
+      const required_xp_for_previous_level = LEVEL_XP_TABLE[current_level - 1];
+      if (user.累计经验值 < required_xp_for_previous_level) {
+        user.累计经验值 = required_xp_for_previous_level;
+      }
+    }
+    const milestones = Object.keys(MILESTONE_LEVELS).map(Number).sort((a, b) => b - a);
+    for (const milestone of milestones) {
+      if (user.等级 >= milestone) {
+        user.生命层级 = MILESTONE_LEVELS[milestone].tier;
+        break;
+      }
+    }
   }
 
-  // src/currency-system.ts
-  function CurrencySystem(currency) {
-    let GP = safeParseFloat(currency.金币);
-    let SP = safeParseFloat(currency.银币);
-    let CP = safeParseFloat(currency.铜币);
+  // src/processCurrencyExchange.ts
+  function processCurrencyExchange(variables, old_variables) {
+    const currency = variables.stat_data.货币;
+    let GP = currency.金币;
+    let SP = currency.银币;
+    let CP = currency.铜币;
     function handleCurrencyExchange() {
       let currencyCleared = false;
       if (GP < 0 && !currencyCleared) {
@@ -199,106 +303,58 @@
     currency.铜币 = Math.floor(CP);
   }
 
-  // src/event-chain-system-current.ts
-  function event_chain(eventchain, world) {
-    const star = tobool(eventchain.开启);
-    const end = tobool(eventchain.结束);
-    const recall_time = tobool(eventchain.琥珀事件);
-    const title = eventchain.标题;
-    const step = eventchain.阶段;
-    const completed_events = eventchain.已完成事件;
-    const variables = getVariables({ type: "message" });
+  // src/processEvent.ts
+  function processEvent(variables, old_variables) {
+    const world = variables.stat_data.世界;
+    const event = variables.stat_data.事件链;
+    const star = event.开启;
+    const end = event.结束;
+    const recall_time = event.琥珀事件;
+    const title = event.标题;
+    const step = event.阶段;
+    const completed_events = event.已完成事件;
     uninjectPrompts(["completed_events"]);
-    insertOrAssignVariables(
-      { event_chain: { completed_events } },
-      { type: "message" }
-    );
+    insertOrAssignVariables({ event: { completed_events } }, { type: "message" });
     if (star === true) {
-      if (variables?.event_chain?.time !== null) {
-        insertOrAssignVariables(
-          { event_chain: { time: world.时间 } },
-          { type: "message" }
-        );
+      if (variables?.date?.event?.time === null || variables?.date?.event?.time === void 0) {
+        insertOrAssignVariables({ event: { time: world.时间 } }, { type: "message" });
       }
-      ;
-      insertOrAssignVariables(
-        { event_chain: { cache: `当前事件为${title}，当前步骤为${step}` } },
-        { type: "message" }
-      );
+      insertOrAssignVariables({ event: { cache: `当前事件为${title}，当前步骤为${step}` } }, { type: "message" });
     }
-    ;
     if (end === true) {
       if (recall_time === true) {
-        const time = variables?.event_chain?.time;
+        const time = variables?.date?.event?.time;
         if (time !== null) {
           world.时间 = time;
         }
       }
-      uninjectPrompts([`event_chain`]);
-      uninjectPrompts([`event_chain_tips`]);
-      eventchain.已完成事件.push(`已完成事件${title}`);
-      eventchain.标题 = "";
-      eventchain.阶段 = "";
-      eventchain.结束 = false;
-      eventchain.开启 = false;
-      eventchain.琥珀事件 = false;
-      deleteVariable("event_chain.time", { type: "message" });
-      deleteVariable("event_chain.cache", { type: "message" });
+      uninjectPrompts([`event`]);
+      uninjectPrompts([`event_tips`]);
+      event.已完成事件.push(`已完成事件${title}`);
+      event.标题 = "";
+      event.阶段 = "";
+      event.结束 = false;
+      event.开启 = false;
+      event.琥珀事件 = false;
+      deleteVariable("event.time", { type: "message" });
+      deleteVariable("event.cache", { type: "message" });
     }
   }
 
-  // src/event-chain-system-inject.ts
-  function event_chain_inject() {
-    const variables = getVariables({ type: "message", message_id: -2 });
-    const completed_events = variables.event_chain.completed_events;
-    injectPrompts([
-      {
-        id: "completed_events",
-        content: completed_events,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    if (variables.event_chain.cache) {
-      const Prompts = variables.event_chain.cache;
-      injectPrompts([
-        {
-          id: "completed_events",
-          content: Prompts,
-          position: "none",
-          depth: 0,
-          role: "system",
-          should_scan: true
-        }
-      ]);
-      injectPrompts([
-        {
-          id: "event_chain_tips",
-          content: `core_system:The event chain has been activated, please note<event_chain>`,
-          position: "in_chat",
-          depth: 0,
-          role: "system",
-          should_scan: true
-        }
-      ]);
-    }
-  }
-
-  // src/experience-level.ts
-  function experiencegrowth(user) {
-    const currentLevel = user.等级;
-    let hasLeveledUp = false;
-    while (safeParseFloat(user.累计经验值) >= safeParseFloat(user.升级所需经验)) {
-      if (!JOB_LEVEL_XP_TABLE[user.等级]) {
+  // src/processExperienceAndLevel.ts
+  function processExperienceAndLevel(variables, old_variables) {
+    const user = variables.stat_data.角色;
+    const current_level = user.等级;
+    let has_leveled_up = false;
+    while (user.累计经验值 >= user.升级所需经验) {
+      if (!LEVEL_XP_TABLE[user.等级]) {
         break;
       }
-      user.等级 = safeParseFloat(user.等级) + 1;
-      hasLeveledUp = true;
-      user.升级所需经验 = JOB_LEVEL_XP_TABLE[user.等级];
+      user.等级 = user.等级 + 1;
+      has_leveled_up = true;
+      user.升级所需经验 = LEVEL_XP_TABLE[user.等级];
       if (user.等级 % GAME_CONFIG.AP_Acquisition_Level === 0) {
-        user.属性.属性点 = safeParseFloat(user.属性.属性点) + 1;
+        user.属性.属性点 = user.属性.属性点 + 1;
         injectPrompts([
           {
             id: "AP+",
@@ -312,125 +368,44 @@
       }
       const milestone = MILESTONE_LEVELS[user.等级];
       if (milestone) {
-        user.属性.力量 = safeParseFloat(user.属性.力量) + milestone.strength;
-        user.属性.敏捷 = safeParseFloat(user.属性.敏捷) + milestone.agility;
-        user.属性.体质 = safeParseFloat(user.属性.体质) + milestone.constitution;
-        user.属性.智力 = safeParseFloat(user.属性.智力) + milestone.intelligence;
-        user.属性.精神 = safeParseFloat(user.属性.精神) + milestone.spirit;
+        user.属性.力量 = user.属性.力量 + milestone.strength;
+        user.属性.敏捷 = user.属性.敏捷 + milestone.agility;
+        user.属性.体质 = user.属性.体质 + milestone.constitution;
+        user.属性.智力 = user.属性.智力 + milestone.intelligence;
+        user.属性.精神 = user.属性.精神 + milestone.spirit;
         user.生命层级 = milestone.tier;
       }
     }
-    if (hasLeveledUp) {
+    if (has_leveled_up) {
       injectPrompts([
         {
           id: "LV+",
           position: "in_chat",
           role: "system",
           depth: 0,
-          content: `core_system: The {{user}} level increased from ${currentLevel} to ${user.等级}`,
+          content: `core_system: The {{user}} level increased from ${current_level} to ${user.等级}`,
           should_scan: true
         }
       ]);
     }
   }
 
-  // src/info-injection.ts
-  function inforead(world, fatesystem, user) {
-    let RedlineObjectSpecies = [];
-    if (fatesystem.命定之人) {
-      const RedlineObject = fatesystem.命定之人;
-      for (const name in RedlineObject) {
-        const CurrentObject = RedlineObject[name];
-        RedlineObjectSpecies.push(CurrentObject.种族);
-      }
-    }
-    injectPrompts([
-      {
-        id: "RedlineObjectSpecies",
-        content: RedlineObjectSpecies,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    injectPrompts([
-      {
-        id: "UserSpecies",
-        content: user.种族,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    injectPrompts([
-      {
-        id: "Location",
-        content: world.地点,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-    injectPrompts([
-      {
-        id: "Time",
-        content: world.时间,
-        position: "none",
-        depth: 0,
-        role: "system",
-        should_scan: true
-      }
-    ]);
-  }
-
-  // src/maintain.ts
-  function maintain(user, fatesystem) {
-    user.生命值 = Math.min(Math.max(safeParseFloat(user.生命值), 0), safeParseFloat(user.生命值上限));
-    user.法力值 = Math.min(Math.max(safeParseFloat(user.法力值), 0), safeParseFloat(user.法力值上限));
-    user.体力值 = Math.min(Math.max(safeParseFloat(user.体力值), 0), safeParseFloat(user.体力值上限));
-    user.属性.力量 = Math.min(Math.max(safeParseFloat(user.属性.力量), 0), 20);
-    user.属性.敏捷 = Math.min(Math.max(safeParseFloat(user.属性.敏捷), 0), 20);
-    user.属性.体质 = Math.min(Math.max(safeParseFloat(user.属性.体质), 0), 20);
-    user.属性.智力 = Math.min(Math.max(safeParseFloat(user.属性.智力), 0), 20);
-    user.属性.精神 = Math.min(Math.max(safeParseFloat(user.属性.精神), 0), 20);
-    const RedlineObject = fatesystem.命定之人;
-    for (const name in RedlineObject) {
-      const CurrentObject = RedlineObject[name];
-      CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
-    }
-    user.等级 = Math.max(0, Math.min(user.等级, 25));
-    user.升级所需经验 = JOB_LEVEL_XP_TABLE[user.等级];
-    const currentLevel = user.等级;
-    if (currentLevel > 0) {
-      const requiredXpForPreviousLevel = JOB_LEVEL_XP_TABLE[currentLevel - 1];
-      if (safeParseFloat(user.累计经验值) < requiredXpForPreviousLevel) {
-        user.累计经验值 = requiredXpForPreviousLevel;
-      }
-    }
+  // src/utils.ts
+  function uninject() {
+    const idsToRemove = ["AP+", "LV+", "Location", "Time", "RedlineObjectSpecies", "UserSpecies"];
+    uninjectPrompts(idsToRemove);
   }
 
   // src/main-controller.ts
-  function Main_processes(variables) {
-    const user = variables.stat_data.角色;
-    const currency = variables.stat_data.货币;
-    const world = variables.stat_data.世界;
-    const eventchain = variables.stat_data.事件链;
-    const fatesystem = variables.stat_data.命定系统;
-    if (!user || !currency || !world || !eventchain || !fatesystem) {
-      console.error("核心数据缺失，脚本终止。缺失项:", {
-        用户数据: !!user,
-        货币系统: !!currency,
-        世界数据: !!world,
-        事件链: !!eventchain,
-        命定系统: !!fatesystem
-      });
+  function mainProcesses() {
+    const variables = getVariables({ type: "message" });
+    const old_variables = getVariables({ type: "message", message_id: -2 }) || {};
+    if (!variables || !variables.stat_data) {
+      console.error("无法获取变量数据，脚本终止。");
       return;
     }
     try {
-      maintain(user, fatesystem);
+      maintain(variables, old_variables);
     } catch (error) {
       console.error("执行 maintain 模块时出错", error);
     }
@@ -440,34 +415,34 @@
       console.error("执行 uninject 模块时出错", error);
     }
     try {
-      experiencegrowth(user);
+      processExperienceAndLevel(variables, old_variables);
     } catch (error) {
-      console.error("执行 experiencegrowth 模块时出错", error);
+      console.error("执行 processExperienceAndLevel 模块时出错", error);
     }
     try {
-      CurrencySystem(currency);
+      processCurrencyExchange(variables, old_variables);
     } catch (error) {
-      console.error("执行 CurrencySystem 模块时出错", error);
+      console.error("执行 processCurrencyExchange 模块时出错", error);
     }
     try {
-      inforead(world, fatesystem, user);
+      injectGameInfo(variables, old_variables);
     } catch (error) {
-      console.error("执行 inforead 模块时出错", error);
+      console.error("执行 injectGameInfo 模块时出错", error);
     }
     try {
-      event_chain(eventchain, world);
+      processEvent(variables, old_variables);
     } catch (error) {
-      console.error("执行 event_chain 模块时出错", error);
+      console.error("执行 processEvent 模块时出错", error);
     }
     try {
-      event_chain_inject();
+      injectEventPrompts();
     } catch (error) {
-      console.error("执行 event_chain_inject 模块时出错", error);
+      console.error("执行 injectEventPrompts 模块时出错", error);
     }
   }
-  eventOn("mag_variable_update_ended", Main_processes);
-  eventOn(tavern_events.GENERATION_AFTER_COMMANDS, event_chain_inject);
-  eventOn(tavern_events.MESSAGE_SENT, event_chain_inject);
-  eventOn(tavern_events.MESSAGE_UPDATED, event_chain_inject);
-  eventOnButton("重新处理变量", Main_processes);
+  eventOn("mag_variable_update_ended", mainProcesses);
+  eventOn(tavern_events.GENERATION_AFTER_COMMANDS, injectEventPrompts);
+  eventOn(tavern_events.MESSAGE_SENT, injectEventPrompts);
+  eventOn(tavern_events.MESSAGE_UPDATED, injectEventPrompts);
+  eventOnButton("重新处理变量", mainProcesses);
 })();
