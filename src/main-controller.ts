@@ -1,76 +1,60 @@
-import { CurrencySystem } from './currency-system';
-import { event_chain } from './event-chain-system-current';
-import { event_chain_inject } from './event-chain-system-inject';
-import { experiencegrowth } from './experience-level';
-import { inforead } from './info-injection';
-import { maintain } from './maintain';
-import { Variables } from './types';
-import { uninject } from './utils';
-declare function eventOn(event: string, callback: (variables: Variables) => void): void;
-declare function eventOnButton(button: string, callback: (variables: Variables) => void): void;
-declare const tavern_events: {
-  GENERATION_AFTER_COMMANDS: 'GENERATION_AFTER_COMMANDS';
-  MESSAGE_SENT: 'message_sent';
-  MESSAGE_UPDATED: 'message_updated';
-};
-function Main_processes(variables: Variables) {
-  const user = variables.stat_data.角色;
-  const currency = variables.stat_data.货币;
-  const world = variables.stat_data.世界;
-  const eventchain = variables.stat_data.事件链;
-  const fatesystem = variables.stat_data.命定系统;
+import { injectEventPrompts } from "./injectEventPrompts";
+import { injectGameInfo } from "./injectGameInfo";
+import { maintain } from "./maintain";
+import { processCurrencyExchange } from "./processCurrencyExchange";
+import { processEvent } from "./processEvent";
+import { processExperienceAndLevel } from "./processExperienceAndLevel";
+import { Variables } from "./types";
+import { uninject } from "./utils";
 
-  if (!user || !currency || !world || !eventchain || !fatesystem) {
-    console.error('核心数据缺失，脚本终止。缺失项:', {
-      用户数据: !!user,
-      货币系统: !!currency,
-      世界数据: !!world,
-      事件链: !!eventchain,
-      命定系统: !!fatesystem
-    });
+function mainProcesses() {
+  const variables = getVariables({ type: "message" }) as Variables;
+  const old_variables = (getVariables({ type: "message", message_id: -2 }) as Variables) || {};
+  if (!variables || !variables.stat_data) {
+    console.error("无法获取变量数据，脚本终止。");
     return;
   }
-  // 按照顺序执行模块
+
   try {
-    maintain(user, fatesystem);
+    maintain(variables, old_variables);
   } catch (error) {
-    console.error('执行 maintain 模块时出错', error);
+    console.error("执行 maintain 模块时出错", error);
   }
   try {
     uninject();
   } catch (error) {
-    console.error('执行 uninject 模块时出错', error);
+    console.error("执行 uninject 模块时出错", error);
   }
   try {
-    experiencegrowth(user);
+    processExperienceAndLevel(variables, old_variables);
   } catch (error) {
-    console.error('执行 experiencegrowth 模块时出错', error);
+    console.error("执行 processExperienceAndLevel 模块时出错", error);
   }
   try {
-    CurrencySystem(currency);
+    processCurrencyExchange(variables, old_variables);
   } catch (error) {
-    console.error('执行 CurrencySystem 模块时出错', error);
+    console.error("执行 processCurrencyExchange 模块时出错", error);
   }
   try {
-    inforead(world, fatesystem, user);
+    injectGameInfo(variables, old_variables);
   } catch (error) {
-    console.error('执行 inforead 模块时出错', error);
+    console.error("执行 injectGameInfo 模块时出错", error);
   }
   try {
-    event_chain(eventchain, world);
+    processEvent(variables, old_variables);
   } catch (error) {
-    console.error('执行 event_chain 模块时出错', error);
+    console.error("执行 processEvent 模块时出错", error);
   }
   try {
-    event_chain_inject();
+    injectEventPrompts();
   } catch (error) {
-    console.error('执行 event_chain_inject 模块时出错', error);
+    console.error("执行 injectEventPrompts 模块时出错", error);
   }
 }
 
 // ============================ [事件监听] ============================
-eventOn('mag_variable_update_ended', Main_processes);
-eventOn(tavern_events.GENERATION_AFTER_COMMANDS, event_chain_inject);
-eventOn(tavern_events.MESSAGE_SENT, event_chain_inject);
-eventOn(tavern_events.MESSAGE_UPDATED, event_chain_inject);
-eventOnButton('重新处理变量', Main_processes);
+eventOn("mag_variable_update_ended", mainProcesses);
+eventOn(tavern_events.GENERATION_AFTER_COMMANDS, injectEventPrompts);
+eventOn(tavern_events.MESSAGE_SENT, injectEventPrompts);
+eventOn(tavern_events.MESSAGE_UPDATED, injectEventPrompts);
+eventOnButton("重新处理变量", mainProcesses);

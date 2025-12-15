@@ -4,6 +4,8 @@
     "module": "ESNext",
     "outDir": "./dist",
     "rootDir": "./src",
+    "resolveJsonModule": true,
+    "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

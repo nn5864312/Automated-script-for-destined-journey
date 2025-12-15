@@ -1,28 +1,32 @@
-import { JOB_LEVEL_XP_TABLE } from './config';
-import { FateSystem, User } from './types';
-import { safeParseFloat } from './utils';
+import { LEVEL_XP_TABLE, MILESTONE_LEVELS } from "./config";
+import { Variables } from "./types";
 
-export function maintain(user: User, fatesystem: FateSystem) {
-  user.生命值 = Math.min(Math.max(safeParseFloat(user.生命值), 0), safeParseFloat(user.生命值上限));
-  user.法力值 = Math.min(Math.max(safeParseFloat(user.法力值), 0), safeParseFloat(user.法力值上限));
-  user.体力值 = Math.min(Math.max(safeParseFloat(user.体力值), 0), safeParseFloat(user.体力值上限));
-  user.属性.力量 = Math.min(Math.max(safeParseFloat(user.属性.力量), 0), 20);
-  user.属性.敏捷 = Math.min(Math.max(safeParseFloat(user.属性.敏捷), 0), 20);
-  user.属性.体质 = Math.min(Math.max(safeParseFloat(user.属性.体质), 0), 20);
-  user.属性.智力 = Math.min(Math.max(safeParseFloat(user.属性.智力), 0), 20);
-  user.属性.精神 = Math.min(Math.max(safeParseFloat(user.属性.精神), 0), 20);
-  const RedlineObject = fatesystem.命定之人;
-  for (const name in RedlineObject) {
-    const CurrentObject = RedlineObject[name];
-    CurrentObject.好感度 = Math.max(-100, Math.min(CurrentObject.好感度, 100));
+export function maintain(variables: Variables, old_variables: Variables) {
+  const user = variables.stat_data.角色;
+  if (user.等级 < 13) {
+    variables.stat_data.登神长阶.是否开启 = false;
+  } else {
+    variables.stat_data.登神长阶.是否开启 = true;
   }
-  user.等级 = Math.max(0, Math.min(user.等级, 25));
-  user.升级所需经验 = JOB_LEVEL_XP_TABLE[user.等级];
-  const currentLevel = user.等级;
-  if (currentLevel > 0) {
-    const requiredXpForPreviousLevel = JOB_LEVEL_XP_TABLE[currentLevel - 1];
-    if (safeParseFloat(user.累计经验值) < requiredXpForPreviousLevel) {
-      user.累计经验值 = requiredXpForPreviousLevel;
+  if (user.等级 !== 1) {
+    user.等级 = old_variables.stat_data.角色.等级;
+  }
+  user.升级所需经验 = LEVEL_XP_TABLE[user.等级];
+  const current_level = user.等级;
+  if (current_level > 0) {
+    const required_xp_for_previous_level = LEVEL_XP_TABLE[current_level - 1];
+    if (user.累计经验值 < required_xp_for_previous_level) {
+      user.累计经验值 = required_xp_for_previous_level;
+    }
+  }
+  const milestones = Object.keys(MILESTONE_LEVELS)
+    .map(Number)
+    .sort((a, b) => b - a);
+
+  for (const milestone of milestones) {
+    if (user.等级 >= milestone) {
+      user.生命层级 = MILESTONE_LEVELS[milestone].tier;
+      break;
     }
   }
 }
