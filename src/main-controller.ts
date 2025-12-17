@@ -50,9 +50,13 @@ function mainProcesses(variables: Variables) {
   }
 }
 
-// ============================ [事件监听] ============================
-eventOn("mag_variable_update_ended", mainProcesses);
-eventOn(tavern_events.GENERATION_AFTER_COMMANDS, injectEventPrompts);
-eventOn(tavern_events.MESSAGE_SENT, injectEventPrompts);
-eventOn(tavern_events.MESSAGE_UPDATED, injectEventPrompts);
-eventOnButton("重新处理变量", mainProcesses);
+// ============================ [初始化与事件监听] ============================
+(async () => {
+  await waitGlobalInitialized("Mvu");
+
+  eventOn("mag_variable_update_ended", mainProcesses);
+  eventOn(tavern_events.GENERATION_AFTER_COMMANDS, injectEventPrompts);
+  eventOn(tavern_events.MESSAGE_SENT, injectEventPrompts);
+  eventOn(tavern_events.MESSAGE_UPDATED, injectEventPrompts);
+  eventOn(getButtonEvent("重新处理变量"), mainProcesses);
+})();
