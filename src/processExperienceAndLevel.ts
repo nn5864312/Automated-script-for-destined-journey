@@ -4,7 +4,7 @@
  */
 import { LEVEL_XP_TABLE, MILESTONE_LEVELS, GAME_CONFIG } from "./config";
 import { Variables } from "./types";
-export function processExperienceAndLevel(variables: Variables, old_variables: Variables): void {
+export function processExperienceAndLevel(variables: Variables): void {
   const user = variables.stat_data.角色;
   const current_level = user.等级;
   let has_leveled_up = false;

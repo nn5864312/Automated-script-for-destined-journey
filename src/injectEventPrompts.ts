@@ -1,6 +1,6 @@
 export function injectEventPrompts() {
   const variables = getVariables({ type: "message", message_id: -2 });
-  const completed_events = variables?.date?.event?.completed_events || {};
+  const completed_events = variables?.date?.event?.completed_events;
   injectPrompts([
     {
       id: "completed_events",

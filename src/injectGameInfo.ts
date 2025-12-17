@@ -1,6 +1,6 @@
 import { Variables } from "./types";
 
-export function injectGameInfo(variables: Variables, old_variables: Variables): void {
+export function injectGameInfo(variables: Variables): void {
   const world = variables.stat_data.世界;
   const user = variables.stat_data.角色;
   const fatesystem = variables.stat_data.命定系统;

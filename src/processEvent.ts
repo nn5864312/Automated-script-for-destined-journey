@@ -1,6 +1,6 @@
 import { Variables } from "./types";
 
-export function processEvent(variables: Variables, old_variables: Variables): void {
+export function processEvent(variables: Variables): void {
   const world = variables.stat_data.世界;
   const event = variables.stat_data.事件链;
   const star = event.开启;
@@ -10,17 +10,17 @@ export function processEvent(variables: Variables, old_variables: Variables): vo
   const step = event.阶段;
   const completed_events = event.已完成事件;
   uninjectPrompts(["completed_events"]);
-  insertOrAssignVariables({ event: { completed_events: completed_events } }, { type: "message" });
+  insertOrAssignVariables({ date: { event: { completed_events: completed_events } } }, { type: "message" });
   if (star === true) {
     if (variables?.date?.event?.time === null || variables?.date?.event?.time === undefined) {
-      insertOrAssignVariables({ event: { time: world.时间 } }, { type: "message" });
+      insertOrAssignVariables({ date: { event: { time: world.时间 } } }, { type: "message" });
     }
-    insertOrAssignVariables({ event: { cache: `当前事件为${title}，当前步骤为${step}` } }, { type: "message" });
+    insertOrAssignVariables({ date: { event: { cache: `当前事件为${title}，当前步骤为${step}` } } }, { type: "message" });
   }
   if (end === true) {
     if (recall_time === true) {
       const time = variables?.date?.event?.time;
-      if (time !== null) {
+      if (time) {
         world.时间 = time;
       }
     }

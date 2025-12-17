@@ -1,14 +1,15 @@
 import { LEVEL_XP_TABLE, MILESTONE_LEVELS } from "./config";
 import { Variables } from "./types";
 
-export function maintain(variables: Variables, old_variables: Variables) {
+export function maintain(variables: Variables) {
+  const old_variables = Mvu.getMvuData({ type: "message", message_id: -2 }) || {};
   const user = variables.stat_data.角色;
   if (user.等级 < 13) {
     variables.stat_data.登神长阶.是否开启 = false;
   } else {
     variables.stat_data.登神长阶.是否开启 = true;
   }
-  if (user.等级 !== 1 && old_variables?.stat_data?.角色?.等级) {
+  if (old_variables.stat_data.角色.等级 !== 1) {
     user.等级 = old_variables.stat_data.角色.等级;
   }
   user.升级所需经验 = LEVEL_XP_TABLE[user.等级];

@@ -7,7 +7,7 @@ import { Variables } from "./types";
  *
  * @param {Object} currency - 货币对象，包含货币信息
  */
-export function processCurrencyExchange(variables: Variables, old_variables: Variables): void {
+export function processCurrencyExchange(variables: Variables): void {
   const currency = variables.stat_data.货币;
   let GP = currency.金币;
   let SP = currency.银币;
