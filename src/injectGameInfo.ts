@@ -10,7 +10,9 @@ export function injectGameInfo(variables: Variables): void {
     const redline_object = fatesystem.命定之人;
     for (const name in redline_object) {
       const current_object = redline_object[name];
-      redline_object_species.push(current_object.种族);
+      if (current_object.是否在场) {
+        redline_object_species.push(current_object.种族);
+      }
     }
   }
   injectPrompts([
