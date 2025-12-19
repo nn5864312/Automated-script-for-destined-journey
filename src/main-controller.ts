@@ -4,6 +4,7 @@ import { maintain } from "./maintain";
 import { processCurrencyExchange } from "./processCurrencyExchange";
 import { processEvent } from "./processEvent";
 import { processExperienceAndLevel } from "./processExperienceAndLevel";
+import { processNPCExperienceAndLevel } from "./processNPCExperienceAndLevel";
 import { Variables } from "./types";
 import { uninject } from "./utils";
 
@@ -37,6 +38,11 @@ function mainProcesses(variables: Variables) {
     injectGameInfo(variables);
   } catch (error) {
     console.error("执行 injectGameInfo 模块时出错", error);
+  }
+  try {
+    processNPCExperienceAndLevel(variables);
+  } catch (error) {
+    console.error("执行 processNPCExperienceAndLevel 模块时出错", error);
   }
   try {
     processEvent(variables);

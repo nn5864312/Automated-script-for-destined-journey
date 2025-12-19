@@ -237,5 +237,12 @@ export interface Variables {
       completed_events: string[];
       time: string;
     };
+    npcs: {
+      [name: string]: {
+        level: number;
+        exp: number;
+        required_exp: number;
+      };
+    };
   };
 }
