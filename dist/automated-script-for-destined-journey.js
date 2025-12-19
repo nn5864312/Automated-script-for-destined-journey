@@ -3,7 +3,7 @@
 // 命定的异世界开发之旅自动化脚本
 // ============================================================
 // Version: 1.1.4
-// Build Date: 2025-12-17 12:38:45
+// Build Date: 2025-12-19 14:22:49
 // Author: The-poem-of-destiny
 // License: MIT
 // Repository: git+https://github.com/The-poem-of-destiny/Automated-script-for-destined-journey.git
@@ -60,7 +60,9 @@
       const redline_object = fatesystem.命定之人;
       for (const name in redline_object) {
         const current_object = redline_object[name];
-        redline_object_species.push(current_object.种族);
+        if (current_object.是否在场) {
+          redline_object_species.push(current_object.种族);
+        }
       }
     }
     injectPrompts([
@@ -157,8 +159,10 @@
     } else {
       variables.stat_data.登神长阶.是否开启 = true;
     }
-    if (old_variables.stat_data.角色.等级 !== 1) {
-      user.等级 = old_variables.stat_data.角色.等级;
+    if (old_variables.stat_data.角色.等级 < user.等级) {
+      if (old_variables.stat_data.角色.等级 !== 1) {
+        user.等级 = old_variables.stat_data.角色.等级;
+      }
     }
     user.升级所需经验 = LEVEL_XP_TABLE[user.等级];
     const current_level = user.等级;
