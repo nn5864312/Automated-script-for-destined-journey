@@ -4,8 +4,8 @@ export interface World {
   地点: string;
 }
 
-// 事件链
-export interface EventChain {
+// 事件
+export interface Event {
   开启: boolean;
   结束: boolean;
   标题: string;
@@ -220,7 +220,7 @@ export interface News {
 export interface Variables {
   stat_data: {
     世界: World;
-    事件链: EventChain;
+    事件: Event;
     任务列表: TaskList;
     角色: Character;
     背包: Backpack;

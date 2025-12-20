@@ -2,7 +2,7 @@ import { Variables } from "./types";
 
 export function processEvent(variables: Variables): void {
   const world = variables.stat_data.世界;
-  const event = variables.stat_data.事件链;
+  const event = variables.stat_data.事件;
   const star = event.开启;
   const end = event.结束;
   const title = event.标题;
