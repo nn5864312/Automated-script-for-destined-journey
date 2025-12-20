@@ -8,7 +8,6 @@ export interface World {
 export interface EventChain {
   开启: boolean;
   结束: boolean;
-  琥珀事件: boolean;
   标题: string;
   阶段: string;
   已完成事件: string[];
