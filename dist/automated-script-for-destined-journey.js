@@ -3,7 +3,7 @@
 // 命定的异世界开发之旅自动化脚本
 // ============================================================
 // Version: 1.1.4
-// Build Date: 2025-12-20 17:34:42
+// Build Date: 2025-12-20 18:39:29
 // Author: The-poem-of-destiny
 // License: MIT
 // Repository: git+https://github.com/The-poem-of-destiny/Automated-script-for-destined-journey.git
@@ -314,7 +314,6 @@
     const event = variables.stat_data.事件链;
     const star = event.开启;
     const end = event.结束;
-    const recall_time = event.琥珀事件;
     const title = event.标题;
     const step = event.阶段;
     const completed_events = event.已完成事件;
@@ -327,12 +326,6 @@
       insertOrAssignVariables({ date: { event: { cache: `当前事件为${title}，当前步骤为${step}` } } }, { type: "message" });
     }
     if (end === true) {
-      if (recall_time === true) {
-        const time = variables?.date?.event?.time;
-        if (time) {
-          world.时间 = time;
-        }
-      }
       uninjectPrompts([`event`]);
       uninjectPrompts([`event_tips`]);
       event.已完成事件.push(`已完成事件${title}`);
@@ -340,7 +333,6 @@
       event.阶段 = "";
       event.结束 = false;
       event.开启 = false;
-      event.琥珀事件 = false;
       deleteVariable("event.time", { type: "message" });
       deleteVariable("event.cache", { type: "message" });
     }
