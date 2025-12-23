@@ -44,8 +44,7 @@ jobs:
       # 基于 package.json 中的 version 字段创建 tag，修改 version 即可更新版本
       - id: autotag
         if: github.ref_name == 'main'
-        uses: butlerlogic/action-autotag@stable
+        uses: jaywcjlove/create-tag-action@main
         with:
-          tag_prefix: "v"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          package-path: ./package.json
+          token: ${{ secrets.GITHUB_TOKEN }}
