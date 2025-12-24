@@ -74,8 +74,10 @@ const init = async (): Promise<void> => {
 
   // 监听变量更新结束事件
   eventOn(Mvu.events.VARIABLE_UPDATE_ENDED, errorCatched(handleVariableUpdate));
-
+  
   console.log('[命定之诗] 脚本已加载 ฅ\'ω\'ฅ');
+  toastr.success('[命定之诗] 脚本已加载 ฅ\'ω\'ฅ');
+  eventEmit("[命定之诗] 脚本已加载");
 };
 
 // 使用 jQuery 的 ready 事件启动

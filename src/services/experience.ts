@@ -47,7 +47,7 @@ export const processExperienceAndLevel = (new_variables: MessageVariables, old_v
   // 升级提示
   if (character.等级 > initialLevel) {
     promptsToInject.push({
-      id: 'Level Up',
+      id: '等级提升',
       content: `core_system: The {{user}} level increased from ${initialLevel} to ${character.等级}`,
       position: 'in_chat',
       role: 'system',

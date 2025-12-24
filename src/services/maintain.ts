@@ -23,6 +23,7 @@ export const maintainCharacterData = (new_variables: MessageVariables, old_varia
   // 防止等级被非法提升
   if (oldLevel < character.等级 && oldLevel !== 1) {
     _.set(character, '等级', oldLevel);
+    toastr.error('等级被AI非法提升,请检查变量更新');
   }
 
   // 更新升级所需经验

@@ -5,7 +5,7 @@
 import { klona } from 'klona';
 
 /** 需要清理的注入 ID 列表 */
-const InjectIdsToRemove = ['属性点获得', 'Level Up', 'NPC Level Up', '同伴种族', '主角种族', '当前所在地点', '当前时间', '事件提示'] as const;
+const InjectIdsToRemove = ['属性点获得', '等级提升', 'NPC等级提升', '同伴种族', '主角种族', '当前所在地点', '当前时间', '事件提示'] as const;
 
 /**
  * 清理旧的注入提示

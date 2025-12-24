@@ -94,7 +94,7 @@ export const processNPCExperienceAndLevel = (new_variables: MessageVariables, ol
   if (levelUpPrompts.length > 0) {
     injectMultiplePrompts([
       {
-        id: 'NPC Level Up',
+        id: 'NPC等级提升',
         content: `core_system: ${levelUpPrompts.join('; ')}`,
         position: 'none',
         role: 'system',

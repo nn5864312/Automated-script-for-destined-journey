@@ -18,7 +18,6 @@ export const processEvent = (current_variables: MessageVariables): void => {
   uninjectPrompts(['已完成事件']);
 
   // 使用 safeGet 安全访问嵌套属性
-  const worldTime = safeGet(current_variables, 'stat_data.世界.时间', '未知');
   const isEventStarted = safeGet(current_variables, 'stat_data.事件链.开启', false);
   const isEventEnded = safeGet(current_variables, 'stat_data.事件链.结束', false);
   const eventTitle = safeGet(current_variables, 'stat_data.事件链.标题', '');
@@ -33,15 +32,6 @@ export const processEvent = (current_variables: MessageVariables): void => {
 
   // 事件开启处理
   if (isEventStarted) {
-    // 记录事件开始时间（如果尚未记录）
-    const existingTime = safeGet(current_variables, 'date.event.time', null);
-    if (_.isNil(existingTime)) {
-      insertOrAssignVariables(
-        { date: { event: { time: worldTime } } },
-        { type: 'message' },
-      );
-    }
-
     // 更新事件缓存信息
     insertOrAssignVariables(
       { date: { event: { cache: `当前事件为${eventTitle}，当前步骤为${eventStep}` } } },
@@ -69,7 +59,6 @@ export const processEvent = (current_variables: MessageVariables): void => {
     }
 
     // 清理 date 中的事件数据
-    deleteVariable('date.event.time', { type: 'message' });
     deleteVariable('date.event.cache', { type: 'message' });
   }
 };
