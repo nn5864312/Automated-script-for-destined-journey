@@ -17,7 +17,7 @@ export const uninject = (): void => {
 
 /**
  * 深拷贝并移除 Proxy 层
- * 用于将 Vue 响应式数据存入酒馆变量
+ * 用于将响应式数据存入酒馆变量
  */
 export const deepClone = <T>(source_obj: T): T => {
   return klona(source_obj);

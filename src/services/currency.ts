@@ -1,10 +1,11 @@
 /**
  * 货币兑换服务
- * 当某种货币被扣成负数时，自动从更高层级的货币中换算抵扣
+ * 当某种货币被扣成负数时，进行借位换算
  * 如果所有货币都不足，则产生欠债（负铜币）
  *
- * 核心思路：将所有货币转换为铜币（最小单位）统一计算，再分配回各级货币
- * 保守策略：只在有负数时才进行换算，正常情况保持原样
+ * 核心思路：借位后偿还
+ * 1. 向上借位：铜负→借银，银负→借金
+ * 2. 向下偿还：金负→传递给银，银负→传递给铜
  *
  * 注意：货币的取整和非负约束由 zod schema 处理，此服务只处理兑换逻辑
  */
@@ -16,65 +17,55 @@ import type { MessageVariables } from '../types';
 const ExchangeRates = {
   gpToSp: GameConfig.GpToSp,
   spToCp: GameConfig.SpToCp,
-  gpToCp: GameConfig.GpToSp * GameConfig.SpToCp,
 } as const;
 
-/**
- * 将货币转换为统一的铜币单位
- */
-const toCopper = (gold: number, silver: number, copper: number): number => {
-  return gold * ExchangeRates.gpToCp + silver * ExchangeRates.spToCp + copper;
-};
+/** 货币数据结构 */
+type CurrencyData = { 金币: number; 银币: number; 铜币: number };
+type CurrencyKey = keyof CurrencyData;
 
 /**
- * 将铜币分配回各级货币
- * 如果总铜币为负，则保持负铜币（表示欠债）
+ * 向上借位：当 lower 为负时，从 higher 借入
  */
-const fromCopper = (total_copper: number): { gold: number; silver: number; copper: number } => {
-  if (total_copper < 0) {
-    // 欠债情况：金银为0，铜币为负
-    return { gold: 0, silver: 0, copper: total_copper };
+const borrowFrom = (
+  currency: CurrencyData,
+  higher: CurrencyKey,
+  lower: CurrencyKey,
+  rate: number
+): void => {
+  if (currency[lower] < 0) {
+    const borrow = _.ceil(Math.abs(currency[lower]) / rate);
+    currency[higher] -= borrow;
+    currency[lower] += borrow * rate;
   }
-
-  // 正常情况：从高到低分配
-  const gold = _.floor(total_copper / ExchangeRates.gpToCp);
-  const remainingAfterGold = total_copper % ExchangeRates.gpToCp;
-
-  const silver = _.floor(remainingAfterGold / ExchangeRates.spToCp);
-  const copper = remainingAfterGold % ExchangeRates.spToCp;
-
-  return { gold, silver, copper };
 };
 
 /**
- * 检查是否有任何货币为负数
+ * 向下偿还：当 higher 为负时，传递给 lower（可能产生欠债）
  */
-const hasNegativeCurrency = (gold: number, silver: number, copper: number): boolean => {
-  return gold < 0 || silver < 0 || copper < 0;
+const transferTo = (
+  currency: CurrencyData,
+  higher: CurrencyKey,
+  lower: CurrencyKey,
+  rate: number
+): void => {
+  if (currency[higher] < 0) {
+    currency[lower] += currency[higher] * rate;
+    currency[higher] = 0;
+  }
 };
 
 /**
  * 处理货币兑换
- * 只在有负数时才进行换算，正常情况保持原样
- *
- * @param current_variables - 当前的变量数据
+ * 使用借位后偿还策略
  */
 export const processCurrencyExchange = (current_variables: MessageVariables): void => {
   const currency = current_variables.stat_data.货币;
 
-  // 只在有负数时才进行换算
-  if (!hasNegativeCurrency(currency.金币, currency.银币, currency.铜币)) {
-    return;
-  }
+  // 向上借位：低级货币为负时，从高级货币借入
+  borrowFrom(currency, '银币', '铜币', ExchangeRates.spToCp);
+  borrowFrom(currency, '金币', '银币', ExchangeRates.gpToSp);
 
-  // 转换为铜币统一计算
-  const totalCopper = toCopper(currency.金币, currency.银币, currency.铜币);
-
-  // 分配回各级货币
-  const result = fromCopper(totalCopper);
-
-  // 更新货币数据（约束由 schema 处理）
-  currency.金币 = result.gold;
-  currency.银币 = result.silver;
-  currency.铜币 = result.copper;
+  // 向下偿还：高级货币为负时，传递给低级货币
+  transferTo(currency, '金币', '银币', ExchangeRates.gpToSp);
+  transferTo(currency, '银币', '铜币', ExchangeRates.spToCp);
 };
