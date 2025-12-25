@@ -20,7 +20,7 @@ export const MilestoneLevels: Readonly<Record<number, MilestoneBonus>> = {
 } as const;
 
 /** 职业等级经验表 - 各等级所需累计经验值 */
-export const LevelXpTable: Readonly<Record<number, number>> = {
+export const LevelXpTable: Readonly<Record<number, number | 'MAX'>> = {
   0: 0,
   1: 120,
   2: 360,
@@ -46,7 +46,7 @@ export const LevelXpTable: Readonly<Record<number, number>> = {
   22: 289040,
   23: 344240,
   24: 401840,
-  25: Infinity,
+  25: 'MAX',
 } as const;
 
 /** 核心游戏配置 */
@@ -85,8 +85,8 @@ export const getTierForLevel = (target_level: number): string => {
 };
 
 /** 获取升级所需经验值 */
-export const getRequiredXpForLevel = (target_level: number): number => {
-  return _.get(LevelXpTable, target_level, Infinity);
+export const getRequiredXpForLevel = (target_level: number): number | 'MAX' => {
+  return _.get(LevelXpTable, target_level, 'MAX');
 };
 
 /** 检查是否达到满级 */
