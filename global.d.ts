@@ -33,6 +33,8 @@ declare namespace z {
   export type infer<T> = import('zod').infer<T>;
   export type input<T> = import('zod').input<T>;
   export type output<T> = import('zod').output<T>;
+  export type ZodError = import('zod').ZodError;
+  export type ZodIssue = import('zod').ZodIssue;
 }
 
 declare module 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js' {

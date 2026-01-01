@@ -61,8 +61,9 @@ export const processNPCExperienceAndLevel = (new_variables: MessageVariables, ol
 
     // 确保经验不低于前一级所需
     if (npcData.level > 1) {
-      const prevRequired = LevelXpTable[npcData.level - 1] ?? 0;
-      if (npcData.exp < prevRequired) {
+      const prevRequired = LevelXpTable[npcData.level - 1];
+      // 跳过 MAX 或 undefined 的情况
+      if (typeof prevRequired === 'number' && npcData.exp < prevRequired) {
         _.set(npcData, 'exp', prevRequired);
       }
     }
