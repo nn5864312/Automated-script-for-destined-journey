@@ -29,6 +29,9 @@ export const processNPCExperienceAndLevel = (new_variables: MessageVariables, ol
   const oldExp = safeGet(old_variables, 'stat_data.角色.累计经验值', currentExp);
   const deltaExp = currentExp - oldExp;
 
+  // 早期初始化阶段仅同步，不进行经验结算
+  const isInitDryRun = getLastMessageId() <= 3;
+
   // 同步：添加命定之人中存在但 date.npcs 中不存在的对象
   _.forEach(destined, (npc, name) => {
     if (!dateNpcs[name]) {
@@ -55,28 +58,42 @@ export const processNPCExperienceAndLevel = (new_variables: MessageVariables, ol
     const npc = destined[name];
     if (!npc) return;
 
+    const oldNpcLevel = safeGet(
+      old_variables,
+      `stat_data.命定系统.命定之人.${name}.等级`,
+      undefined as number | undefined,
+    );
+    const isManualLevelSet = typeof oldNpcLevel !== 'number' || oldNpcLevel !== npc.等级;
+
     // 同步等级（使用 _.set 确保写入）
     _.set(npcData, 'level', npc.等级);
     _.set(npcData, 'required_exp', getRequiredXpForLevel(npcData.level));
 
-    // 确保经验不低于前一级所需
-    if (npcData.level > 1) {
-      const prevRequired = LevelXpTable[npcData.level - 1];
-      // 跳过 MAX 或 undefined 的情况
+    const prevRequired = npcData.level > 1 ? LevelXpTable[npcData.level - 1] : 0;
+
+    // 手动设置等级时，将经验对齐到前一级，避免被动升一级
+    if (isManualLevelSet) {
+      if (typeof prevRequired === 'number') {
+        _.set(npcData, 'exp', prevRequired);
+      }
+    } else if (npcData.level > 1) {
+      // 确保经验不低于前一级所需
       if (typeof prevRequired === 'number' && npcData.exp < prevRequired) {
         _.set(npcData, 'exp', prevRequired);
       }
     }
 
+    const shouldProcessExp = !isInitDryRun && !isManualLevelSet;
+
     // 经验增加：在场 + 经验增量 > 0 + （需要契约时要已缔结）
-    const canGainExp = npc.是否在场 && deltaExp > 0 && (!requiresContract || npc.是否缔结契约);
+    const canGainExp = shouldProcessExp && npc.是否在场 && deltaExp > 0 && (!requiresContract || npc.是否缔结契约);
     if (canGainExp) {
       _.set(npcData, 'exp', npcData.exp + deltaExp);
     }
 
     // 升级检查
     const initialLevel = npc.等级;
-    while (npcData.exp >= npcData.required_exp && !isMaxLevel(npcData.level)) {
+    while (shouldProcessExp && npcData.exp >= npcData.required_exp && !isMaxLevel(npcData.level)) {
       _.set(npcData, 'level', npcData.level + 1);
       _.set(npcData, 'required_exp', getRequiredXpForLevel(npcData.level));
     }

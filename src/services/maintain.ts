@@ -18,12 +18,13 @@ import { safeGet } from '../utils';
 export const maintainCharacterData = (new_variables: MessageVariables, old_variables: MessageVariables): void => {
   const character = safeGet(new_variables, 'stat_data.角色', {} as any);
   const oldLevel = safeGet(old_variables, 'stat_data.角色.等级', 1);
+  const isInitDryRun = getLastMessageId() <= 2;
 
   // 登神长阶开启条件
   _.set(new_variables, 'stat_data.登神长阶.是否开启', character.等级 >= GameConfig.AscensionUnlockLevel);
 
   // 防止等级被非法提升
-  if (oldLevel < character.等级 && oldLevel !== 1) {
+  if (!isInitDryRun && oldLevel < character.等级) {
     _.set(character, '等级', oldLevel);
     recordIllegalLevelUp();
     toastr.error('等级被AI非法提升,请检查变量更新');

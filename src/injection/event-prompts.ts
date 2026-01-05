@@ -2,9 +2,7 @@
  * 事件提示注入模块
  * 向上下文注入事件相关的提示信息
  */
-
-import type { MessageVariables } from '../types';
-import { injectMultiplePrompts, safeGet } from '../utils';
+import { injectMultiplePrompts } from '../utils';
 
 /**
  * 注入事件提示
