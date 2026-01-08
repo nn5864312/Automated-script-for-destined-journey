@@ -8,10 +8,7 @@ import { Schema } from '../zod_schema/schema';
 export type StatData = z.infer<typeof Schema>;
 
 /** 角色类型 */
-export type Character = StatData['角色'];
-
-/** 货币类型 */
-export type Currency = StatData['货币'];
+export type Character = StatData['主角'];
 
 /** 命定系统类型 */
 export type DestinySystem = StatData['命定系统'];
@@ -20,22 +17,22 @@ export type DestinySystem = StatData['命定系统'];
 export type DestinedOne = DestinySystem['命定之人'][string];
 
 /** 登神长阶类型 */
-export type Ascension = StatData['登神长阶'];
+export type Ascension = StatData['主角']['登神长阶'];
 
 /** 世界信息类型 */
 export type World = StatData['世界'];
 
 /** 事件链类型 */
-export type EventChain = StatData['事件链'];
+export type EventChain = StatData['事件'];
 
 /** 背包类型 */
-export type Backpack = StatData['背包'];
+export type Backpack = StatData['主角']['背包'];
 
 /** 背包物品类型 */
 export type BackpackItem = Backpack[string];
 
 /** 装备集类型 */
-export type EquipmentSet = StatData['装备'];
+export type EquipmentSet = StatData['主角']['装备'];
 
 /** 任务列表类型 */
 export type QuestList = StatData['任务列表'];

@@ -13,8 +13,8 @@ import { injectMultiplePrompts, safeGet } from '../utils';
  * @param old_variables - 更新前的变量数据（由 MVU 事件提供）
  */
 export const processExperienceAndLevel = (new_variables: MessageVariables, old_variables: MessageVariables): void => {
-  const character = safeGet(new_variables, 'stat_data.角色', {} as any);
-  const initialLevel = safeGet(old_variables, 'stat_data.角色.等级', character.等级);
+  const character = safeGet(new_variables, 'stat_data.主角', {} as any);
+  const initialLevel = safeGet(old_variables, 'stat_data.主角.等级', character.等级);
   const promptsToInject: Array<{ id: string; content: string; position?: 'none' | 'in_chat'; depth?: number; role?: 'system' }> = [];
 
   // 升级处理循环
@@ -24,7 +24,7 @@ export const processExperienceAndLevel = (new_variables: MessageVariables, old_v
 
     // 属性点获得
     if (character.等级 % GameConfig.ApAcquisitionLevel === 0) {
-      _.set(character, '属性.属性点', safeGet(character, '属性.属性点', 0) + 1);
+      _.set(character, '属性点', safeGet(character, '属性点', 0) + 1);
       promptsToInject.push({
         id: '属性点获得',
         content: 'core_system: The {{user}} has reached a specific level and obtained attribute points. Guide the {{user}} to use attribute points',

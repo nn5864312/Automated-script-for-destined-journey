@@ -6,9 +6,9 @@
  */
 
 import type { MessageVariables } from './types';
+import { Schema } from './zod_schema/schema';
 
 // Services
-import { processCurrencyExchange } from './services/currency';
 import { processEvent } from './services/event';
 import { processExperienceAndLevel } from './services/experience';
 import { maintainCharacterData } from './services/maintain';
@@ -22,9 +22,8 @@ import { injectGameInfo } from './injection/game-info';
 import { deepClone, errorCatched, uninject } from './utils';
 
 // Schema
-import { Schema } from './zod_schema/schema';
 import { achievement } from '@/services/achievement';
-import { logSystem, DefaultLogData } from '@/services/log';
+import { DefaultLogData, logSystem } from '@/services/log';
 
 /** date 数据默认值 */
 const DefaultDate: MessageVariables['date'] = {
@@ -41,8 +40,14 @@ const handleVariableUpdate = (data: Mvu.MvuData, data_before_update: Mvu.MvuData
   // 使用 insertVariables 确保 date 数据存在（仅插入不存在的字段）
   insertVariables({ date: DefaultDate }, { type: 'message' });
 
-  // 在处理前使用 Schema.parse 验证并规范化 stat_data（使用 deepClone 保护原数据）
-  data.stat_data = Schema.parse(deepClone(data.stat_data));
+  // 使用 Schema.safeParse 规范化 stat_data
+  const parsed = Schema.safeParse(data.stat_data);
+  if (!parsed.success) {
+    console.error('[命定之诗] stat_data 校验失败', parsed.error);
+  }
+
+  // 使用 deepClone 保护原数据
+  data.stat_data = deepClone(parsed.success ? parsed.data : data.stat_data);
 
   // 获取当前 date 数据
   const currentDate = _.get(data, 'date', DefaultDate) as MessageVariables['date'];
@@ -62,7 +67,6 @@ const handleVariableUpdate = (data: Mvu.MvuData, data_before_update: Mvu.MvuData
   maintainCharacterData(current, old);
   processExperienceAndLevel(current, old);
   processNPCExperienceAndLevel(current, old);
-  processCurrencyExchange(current);
   processEvent(current);
   injectGameInfo(current);
   injectEventPrompts();

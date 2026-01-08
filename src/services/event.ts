@@ -18,11 +18,11 @@ export const processEvent = (current_variables: MessageVariables): void => {
   uninjectPrompts(['已完成事件']);
 
   // 使用 safeGet 安全访问嵌套属性
-  const isEventStarted = safeGet(current_variables, 'stat_data.事件链.开启', false);
-  const isEventEnded = safeGet(current_variables, 'stat_data.事件链.结束', false);
-  const eventTitle = safeGet(current_variables, 'stat_data.事件链.标题', '');
-  const eventStep = safeGet(current_variables, 'stat_data.事件链.阶段', '');
-  const completedEvents: string[] = safeGet(current_variables, 'stat_data.事件链.已完成事件', []);
+  const isEventStarted = safeGet(current_variables, 'stat_data.事件.开启', false);
+  const isEventEnded = safeGet(current_variables, 'stat_data.事件.结束', false);
+  const eventTitle = safeGet(current_variables, 'stat_data.事件.标题', '');
+  const eventStep = safeGet(current_variables, 'stat_data.事件.阶段', '');
+  const completedEvents: string[] = safeGet(current_variables, 'stat_data.事件.已完成事件', []);
 
   // 同步已完成事件到 date
   insertOrAssignVariables(
@@ -48,7 +48,7 @@ export const processEvent = (current_variables: MessageVariables): void => {
     const updatedCompletedEvents = [...completedEvents, `已完成事件${eventTitle}`];
 
     // 使用 safeGet 获取事件链引用，然后安全地设置值
-    const eventChain = safeGet(current_variables, 'stat_data.事件链', null);
+    const eventChain = safeGet(current_variables, 'stat_data.事件', null);
     if (!_.isNil(eventChain)) {
       // 重置事件状态
       _.set(eventChain, '已完成事件', updatedCompletedEvents);

@@ -25,8 +25,8 @@ export const processNPCExperienceAndLevel = (new_variables: MessageVariables, ol
   const dateNpcs: Record<string, NpcExpData> = safeGet(new_variables, 'date.npcs', {});
 
   // 计算主角经验增量
-  const currentExp = safeGet(new_variables, 'stat_data.角色.累计经验值', 0);
-  const oldExp = safeGet(old_variables, 'stat_data.角色.累计经验值', currentExp);
+  const currentExp = safeGet(new_variables, 'stat_data.主角.累计经验值', 0);
+  const oldExp = safeGet(old_variables, 'stat_data.主角.累计经验值', currentExp);
   const deltaExp = currentExp - oldExp;
 
   // 早期初始化阶段仅同步，不进行经验结算

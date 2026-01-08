@@ -16,12 +16,12 @@ import { safeGet } from '../utils';
  * @param old_variables - 更新前的变量数据（由 MVU 事件提供）
  */
 export const maintainCharacterData = (new_variables: MessageVariables, old_variables: MessageVariables): void => {
-  const character = safeGet(new_variables, 'stat_data.角色', {} as any);
-  const oldLevel = safeGet(old_variables, 'stat_data.角色.等级', 1);
+  const character = safeGet(new_variables, 'stat_data.主角', {} as any);
+  const oldLevel = safeGet(old_variables, 'stat_data.主角.等级', 1);
   const isInitDryRun = getLastMessageId() <= 2;
 
   // 登神长阶开启条件
-  _.set(new_variables, 'stat_data.登神长阶.是否开启', character.等级 >= GameConfig.AscensionUnlockLevel);
+  _.set(new_variables, 'stat_data.主角.登神长阶.是否开启', character.等级 >= GameConfig.AscensionUnlockLevel);
 
   // 防止等级被非法提升
   if (!isInitDryRun && oldLevel < character.等级) {

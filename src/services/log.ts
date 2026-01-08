@@ -33,8 +33,8 @@ const getLogData = (variables: MessageVariables): LogData => {
  * 当生命值从正数变为0或以下时计为死亡
  */
 const checkDeath = (current: MessageVariables, old: MessageVariables, log: LogData): void => {
-  const currentHp = safeGet(current, 'stat_data.角色.生命值', 1);
-  const oldHp = safeGet(old, 'stat_data.角色.生命值', 1);
+  const currentHp = safeGet(current, 'stat_data.主角.生命值', 1);
+  const oldHp = safeGet(old, 'stat_data.主角.生命值', 1);
 
   if (oldHp > 0 && currentHp <= 0) {
     log.deathCount++;
@@ -43,13 +43,13 @@ const checkDeath = (current: MessageVariables, old: MessageVariables, log: LogDa
 
 /**
  * 检测货币欠款
- * 当铜币为负数时，记录最大欠款额度
+ * 当金钱为负数时，记录最大欠款额度
  */
 const checkCurrencyDebt = (current: MessageVariables, log: LogData): void => {
-  const 铜币 = safeGet(current, 'stat_data.货币.铜币', 0);
+  const 金钱 = safeGet(current, 'stat_data.主角.金钱', 0);
 
-  if (铜币 < 0) {
-    const debt = Math.abs(铜币);
+  if (金钱 < 0) {
+    const debt = Math.abs(金钱);
     if (debt > log.maxCurrencyDebt) {
       log.maxCurrencyDebt = debt;
     }
@@ -58,23 +58,13 @@ const checkCurrencyDebt = (current: MessageVariables, log: LogData): void => {
 
 /**
  * 检测破产
- * 当所有货币都为0或负数且之前有正资产时计为破产
+ * 当金钱从正数变为0或负数时计为破产
  */
 const checkBankruptcy = (current: MessageVariables, old: MessageVariables, log: LogData): void => {
-  const current金币 = safeGet(current, 'stat_data.货币.金币', 0);
-  const current银币 = safeGet(current, 'stat_data.货币.银币', 0);
-  const current铜币 = safeGet(current, 'stat_data.货币.铜币', 0);
+  const currentMoney = safeGet(current, 'stat_data.主角.金钱', 0);
+  const oldMoney = safeGet(old, 'stat_data.主角.金钱', 0);
 
-  const old金币 = safeGet(old, 'stat_data.货币.金币', 0);
-  const old银币 = safeGet(old, 'stat_data.货币.银币', 0);
-  const old铜币 = safeGet(old, 'stat_data.货币.铜币', 0);
-
-  // 计算总资产（转换为铜币单位）
-  const currentTotal = current金币 * 10000 + current银币 * 100 + current铜币;
-  const oldTotal = old金币 * 10000 + old银币 * 100 + old铜币;
-
-  // 如果之前有正资产，现在总资产为负或为零，则计为破产
-  if (oldTotal > 0 && currentTotal <= 0) {
+  if (oldMoney > 0 && currentMoney <= 0) {
     log.bankruptcyCount++;
   }
 };

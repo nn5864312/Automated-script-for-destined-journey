@@ -36,7 +36,7 @@ export const injectGameInfo = (current_variables: MessageVariables): void => {
   // 使用 safeGet 安全访问嵌套属性
   const worldLocation = safeGet(current_variables, 'stat_data.世界.地点', '未知');
   const worldTime = safeGet(current_variables, 'stat_data.世界.时间', '未知');
-  const characterSpecies = safeGet(current_variables, 'stat_data.角色.种族', '未知');
+  const characterSpecies = safeGet(current_variables, 'stat_data.主角.种族', '未知');
   const destinedOnes = safeGet<DestinedOnesData>(current_variables, 'stat_data.命定系统.命定之人', DefaultDestinedOnes);
 
   // 收集在场命定之人的种族
