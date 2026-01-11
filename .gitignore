@@ -11,3 +11,9 @@ pnpm-debug.log*
 
 auto-imports.d.ts
 components.d.ts
+
+# Jest / Testing
+coverage/
+*.lcov
+.jest/
+jest-results.json
