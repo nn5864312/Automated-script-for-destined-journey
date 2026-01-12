@@ -52,8 +52,7 @@ export const injectLevelPrompts = (): void => {
     if (gainedAP) {
       prompts.push({
         id: '属性点获得',
-        content:
-          'core_system: {{user}}升级了，获得了1点属性点。引导{{user}}使用属性点',
+        content: 'core_system: {{user}}升级了，获得了1点属性点。引导{{user}}使用属性点',
         position: 'in_chat',
         depth: 0,
         role: 'system',

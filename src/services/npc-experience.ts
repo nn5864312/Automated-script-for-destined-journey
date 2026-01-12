@@ -120,7 +120,10 @@ export const processNPCExperienceAndLevel = (
     };
 
     // 使用 insertOrAssignVariables 持久化 date.npcs 和 date.levelUp 到消息楼层变量
-    insertOrAssignVariables({ date: { npcs: dateNpcs, levelUp: levelUpData } }, { type: 'message' });
+    insertOrAssignVariables(
+      { date: { npcs: dateNpcs, levelUp: levelUpData } },
+      { type: 'message' }
+    );
   } else {
     // 仅持久化 date.npcs
     insertOrAssignVariables({ date: { npcs: dateNpcs } }, { type: 'message' });
