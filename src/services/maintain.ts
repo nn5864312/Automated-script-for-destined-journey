@@ -20,6 +20,7 @@ export const maintainCharacterData = (
   old_variables: MessageVariables
 ): void => {
   const character = safeGet(new_variables, 'stat_data.主角', {} as any);
+  const hasOldLevel = _.has(old_variables, 'stat_data.主角.等级');
   const oldLevel = safeGet(old_variables, 'stat_data.主角.等级', 1);
   const isInitDryRun = getLastMessageId() <= 2;
 
@@ -27,7 +28,7 @@ export const maintainCharacterData = (
   syncAscensionState(new_variables, old_variables);
 
   // 防止等级被非法提升（允许经验满且外部预写升级等级）
-  if (!isInitDryRun && oldLevel < character.等级) {
+  if (!isInitDryRun && hasOldLevel && oldLevel < character.等级) {
     const requiredXpNumber = Number(safeGet(character, '升级所需经验', 0));
     const expFull =
       Number.isFinite(requiredXpNumber) &&

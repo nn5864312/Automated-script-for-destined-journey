@@ -33,6 +33,10 @@ const getLogData = (variables: MessageVariables): LogData => {
  * 当生命值从正数变为0或以下时计为死亡
  */
 const checkDeath = (current: MessageVariables, old: MessageVariables, log: LogData): void => {
+  if (!_.has(old, 'stat_data.主角.生命值')) {
+    return;
+  }
+
   const currentHp = safeGet(current, 'stat_data.主角.生命值', 1);
   const oldHp = safeGet(old, 'stat_data.主角.生命值', 1);
 
@@ -61,6 +65,10 @@ const checkCurrencyDebt = (current: MessageVariables, log: LogData): void => {
  * 当金钱从正数变为0或负数时计为破产
  */
 const checkBankruptcy = (current: MessageVariables, old: MessageVariables, log: LogData): void => {
+  if (!_.has(old, 'stat_data.主角.金钱')) {
+    return;
+  }
+
   const currentMoney = safeGet(current, 'stat_data.主角.金钱', 0);
   const oldMoney = safeGet(old, 'stat_data.主角.金钱', 0);
 
@@ -74,6 +82,10 @@ const checkBankruptcy = (current: MessageVariables, old: MessageVariables, log: 
  * 当命运点数增加时，累加到总获取量
  */
 const checkFPGained = (current: MessageVariables, old: MessageVariables, log: LogData): void => {
+  if (!_.has(old, 'stat_data.命定系统.命运点数')) {
+    return;
+  }
+
   const currentFP = safeGet(current, 'stat_data.命定系统.命运点数', 0);
   const oldFP = safeGet(old, 'stat_data.命定系统.命运点数', 0);
 
@@ -115,6 +127,10 @@ export const logSystem = (
   new_variables: MessageVariables,
   old_variables: MessageVariables
 ): void => {
+  if (!_.has(old_variables, 'stat_data') || !_.has(new_variables, 'stat_data')) {
+    return;
+  }
+
   // 获取现有的日志数据
   const log = getLogData(new_variables);
 
