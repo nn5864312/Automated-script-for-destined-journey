@@ -28,8 +28,8 @@ const AscensionQuests = {
     奖励: '权能成形，诸力归位于你。',
   },
   [AscensionQuestIds.law]: {
-    简介: '等级已锁，无法获取经验，需满足条件：以权能与额外条件铸成法则。',
-    目标: '以权能与外界试炼立誓，铸成不灭法则。',
+    简介: '等级已锁，无法获取经验，需满足条件：以权能融合法则源质，铸成法则。',
+    目标: '寻得法则源质，与权能相合，点燃法则真名。',
     奖励: '法则凝就，秩序向你低首。',
   },
   [AscensionQuestIds.godPosition]: {
@@ -44,9 +44,45 @@ const AscensionQuests = {
   },
 } as const;
 
+const LawSourceTag = '法则源质';
+const LawSourceNamePattern = /^༺.+༻$/;
+
 const getRequiredXpNumber = (character: Record<string, any>): number | null => {
   const requiredXp = Number(safeGet(character, '升级所需经验', 0));
   return Number.isFinite(requiredXp) ? requiredXp : null;
+};
+
+const isLawSourceItem = (item: Record<string, any>, itemName: string): boolean => {
+  if (!LawSourceNamePattern.test(String(itemName))) {
+    return false;
+  }
+
+  const tags = safeGet(item, '标签', [] as string[]);
+
+  return Array.isArray(tags) && tags.includes(LawSourceTag);
+};
+
+const getLawSourceKeys = (backpack: Record<string, any>): string[] => {
+  return _.filter(_.keys(backpack), itemKey => {
+    const item = safeGet(backpack, itemKey, {} as any);
+    return isLawSourceItem(item, String(itemKey));
+  });
+};
+
+const hasLawSourceInBackpack = (backpack: Record<string, any>): boolean => {
+  return getLawSourceKeys(backpack).length > 0;
+};
+
+const consumeLawSourceFromBackpack = (backpack: Record<string, any>, keys: string[]): boolean => {
+  if (keys.length !== 1) {
+    return false;
+  }
+
+  _.forEach(keys, itemKey => {
+    _.unset(backpack, itemKey);
+  });
+
+  return true;
 };
 
 const isExpFull = (character: Record<string, any>): boolean => {
@@ -103,7 +139,10 @@ export const canBreakAscensionLevel = (
 };
 
 // 同步登神长阶任务与状态
-export const syncAscensionState = (variables: MessageVariables): void => {
+export const syncAscensionState = (
+  variables: MessageVariables,
+  old_variables?: MessageVariables
+): void => {
   const character = safeGet(variables, 'stat_data.主角', {} as any);
   const quests = safeGet(variables, 'stat_data.任务列表', {} as QuestList);
   const ascension = safeGet(character, '登神长阶', {} as any);
@@ -111,10 +150,14 @@ export const syncAscensionState = (variables: MessageVariables): void => {
     getAscensionCounts(ascension);
   const level = Number(safeGet(character, '等级', 1));
   const expFull = isExpFull(character);
-  const extraConditionMet = safeGet(variables, 'date.ascensionExtraConditionMet', false);
+  const backpack = safeGet(character, '背包', {} as any);
+  const lawSourceKeys = getLawSourceKeys(backpack);
+  const lawSourceReady = lawSourceKeys.length > 0;
+  const oldAscension = safeGet(old_variables ?? ({} as any), 'stat_data.主角.登神长阶', {} as any);
+  const prevLawCount = _.size(safeGet(oldAscension, '法则', {} as any));
 
-  // 未达成额外条件时，禁止在20级阶段写入法则
-  if (level === 20 && lawCount > 0 && !extraConditionMet) {
+  // 未获得法则源质时，禁止在20级阶段写入法则
+  if (level === 20 && lawCount > 0 && !lawSourceReady) {
     _.set(character, '登神长阶.法则', {});
   }
 
@@ -151,7 +194,10 @@ export const syncAscensionState = (variables: MessageVariables): void => {
     removeQuest(quests, AscensionQuestIds.godNation);
   }
 
-  if (lawCount > 0 && extraConditionMet) {
-    insertOrAssignVariables({ date: { ascensionExtraConditionMet: false } }, { type: 'message' });
+  if (prevLawCount === 0 && lawCount > 0) {
+    // 仅在法则首次生成时消耗源质，且源质大于等于 2 个时不自动处理
+    consumeLawSourceFromBackpack(backpack, lawSourceKeys);
   }
+
+  _.set(variables, 'date.ascensionLawReady', hasLawSourceInBackpack(backpack));
 };

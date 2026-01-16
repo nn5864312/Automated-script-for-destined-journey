@@ -113,7 +113,7 @@ describe('ascension tasks', () => {
           },
         },
       },
-      date: { ...buildVariables({}).date, ascensionExtraConditionMet: false },
+      date: { ...buildVariables({}).date, ascensionLawReady: false },
     });
 
     syncAscensionState(variables);
@@ -130,7 +130,7 @@ describe('ascension tasks', () => {
           },
         },
       },
-      date: { ...buildVariables({}).date, ascensionExtraConditionMet: false },
+      date: { ...buildVariables({}).date, ascensionLawReady: false },
     });
 
     syncAscensionState(variables);
@@ -152,5 +152,72 @@ describe('ascension tasks', () => {
 
     syncAscensionState(variables);
     expect(variables.stat_data.任务列表['登神·神国初立']).toBeDefined();
+  });
+
+  test('law source is consumed on first law when only one source exists', () => {
+    const variables = buildVariables({
+      stat_data: {
+        主角: {
+          等级: 20,
+          背包: {
+            '༺焰之源质༻': { 标签: ['法则源质'] },
+          },
+          登神长阶: {
+            法则: { 焰律: { 名称: '焰律' } },
+          },
+        },
+      },
+    });
+
+    syncAscensionState(variables, buildVariables({}));
+    expect(variables.stat_data.主角.背包['༺焰之源质༻']).toBeUndefined();
+  });
+
+  test('law source is not consumed when there are multiple sources', () => {
+    const variables = buildVariables({
+      stat_data: {
+        主角: {
+          等级: 20,
+          背包: {
+            '༺焰之源质༻': { 标签: ['法则源质'] },
+            '༺霜之源质༻': { 标签: ['法则源质'] },
+          },
+          登神长阶: {
+            法则: { 焰律: { 名称: '焰律' } },
+          },
+        },
+      },
+    });
+
+    syncAscensionState(variables, buildVariables({}));
+    expect(Object.keys(variables.stat_data.主角.背包)).toHaveLength(2);
+  });
+
+  test('law source is not consumed when law already existed', () => {
+    const oldVariables = buildVariables({
+      stat_data: {
+        主角: {
+          登神长阶: {
+            法则: { 旧律: { 名称: '旧律' } },
+          },
+        },
+      },
+    });
+    const variables = buildVariables({
+      stat_data: {
+        主角: {
+          等级: 21,
+          背包: {
+            '༺焰之源质༻': { 标签: ['法则源质'] },
+          },
+          登神长阶: {
+            法则: { 旧律: { 名称: '旧律' }, 新律: { 名称: '新律' } },
+          },
+        },
+      },
+    });
+
+    syncAscensionState(variables, oldVariables);
+    expect(variables.stat_data.主角.背包['༺焰之源质༻']).toBeDefined();
   });
 });

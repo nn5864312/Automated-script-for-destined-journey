@@ -4,4 +4,5 @@ Object.assign(globalThis, {
   _,
   injectPrompts: jest.fn(),
   uninjectPrompts: jest.fn(),
+  insertOrAssignVariables: jest.fn(),
 });

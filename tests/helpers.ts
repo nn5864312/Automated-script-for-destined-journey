@@ -79,7 +79,7 @@ export const buildVariables = (overrides: DeepPartial<MessageVariables> = {}): M
       event: { cache: '', completed_events: [] },
       npcs: {},
       requiresContractForExp: true,
-      ascensionExtraConditionMet: false,
+      ascensionLawReady: false,
       log: {
         deathCount: 0,
         maxCurrencyDebt: 0,

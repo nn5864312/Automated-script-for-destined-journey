@@ -24,7 +24,7 @@ export const maintainCharacterData = (
   const isInitDryRun = getLastMessageId() <= 2;
 
   // 登神长阶开启条件与任务同步
-  syncAscensionState(new_variables);
+  syncAscensionState(new_variables, old_variables);
 
   // 防止等级被非法提升（允许经验满且外部预写升级等级）
   if (!isInitDryRun && oldLevel < character.等级) {

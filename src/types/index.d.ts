@@ -83,7 +83,7 @@ export interface DateData {
   npcs: Record<string, NpcExpData>;
   requiresContractForExp: boolean;
   /** 登神额外条件占位 */
-  ascensionExtraConditionMet: boolean;
+  ascensionLawReady: boolean;
   /** 日志统计数据 */
   log: LogData;
   /** 升级提示数据 - 用于延迟注入 */
