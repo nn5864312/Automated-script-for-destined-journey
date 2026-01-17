@@ -81,6 +81,9 @@ export interface DateData {
     time?: string;
   };
   npcs: Record<string, NpcExpData>;
+  /** NPC随主角升级 */
+  npcLevelUpWithPlayer: true;
+  /** NPC需要契约才能随主角获取经验 */
   requiresContractForExp: boolean;
   /** 登神额外条件占位 */
   ascensionLawReady: boolean;

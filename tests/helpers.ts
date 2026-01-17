@@ -78,6 +78,7 @@ export const buildVariables = (overrides: DeepPartial<MessageVariables> = {}): M
     date: {
       event: { cache: '', completed_events: [] },
       npcs: {},
+      npcLevelUpWithPlayer: true,
       requiresContractForExp: true,
       ascensionLawReady: false,
       log: {

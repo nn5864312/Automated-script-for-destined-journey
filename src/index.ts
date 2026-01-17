@@ -30,6 +30,7 @@ import { DefaultLogData, logSystem } from '@/services/log';
 const DefaultDate: MessageVariables['date'] = {
   event: { cache: '', completed_events: [] },
   npcs: {},
+  npcLevelUpWithPlayer: true,
   requiresContractForExp: true,
   ascensionLawReady: false,
   log: DefaultLogData,
