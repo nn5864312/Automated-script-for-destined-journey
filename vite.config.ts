@@ -12,7 +12,6 @@ const globalExternals: Record<string, string> = {
   'vue-router': 'VueRouter',
   yaml: 'YAML',
   zod: 'z',
-  'pixi.js': 'PIXI',
 };
 
 // CDN 映射
@@ -20,11 +19,8 @@ const cdnExternals: Record<string, string> = {
   sass: 'https://jspm.dev/sass',
 };
 
-// 内置模块（不作为 external 处理）
-const builtinModules = ['vue3-pixi', 'vue-demi'];
-
 // 判断是否应该外部化
-function shouldExternalize(id: string, importer: string | undefined, mode: string): boolean {
+function shouldExternalize(id: string, importer: string | undefined): boolean {
   // 相对路径、绝对路径、特殊前缀不外部化
   if (
     id.startsWith('-') ||
@@ -46,18 +42,13 @@ function shouldExternalize(id: string, importer: string | undefined, mode: strin
     }
   }
 
-  // 内置模块不外部化
-  if (builtinModules.includes(id)) {
-    return false;
-  }
-
-  // 开发模式下，vue 和 pixi 相关不外部化
-  if (mode !== 'production' && ['vue', 'pixi'].some(key => id.includes(key))) {
-    return false;
-  }
-
-  // react 和 zustand 相关不外部化
-  if (['react', 'zustand'].some(key => id.includes(key))) {
+  // 如果不是 vue 或 vue-router 精确匹配，但包含 vue/react/zustand，则不外部化
+  // 这样 'vue' 和 'vue-router' 会被外部化使用全局变量
+  // 而 'vue-demi', 'vue3-pixi', '@vue/xxx' 等则会被打包
+  if (
+    ['vue', 'vue-router'].every(key => id !== key) &&
+    ['vue', 'react', 'zustand'].some(key => id.includes(key))
+  ) {
     return false;
   }
 
@@ -80,7 +71,7 @@ export default defineConfig(({ mode }) => ({
       fileName: () => 'index.js',
     },
     rollupOptions: {
-      external: (id, importer) => shouldExternalize(id, importer, mode),
+      external: (id, importer) => shouldExternalize(id, importer),
       output: {
         globals: globalExternals,
         paths: (id: string) => {
