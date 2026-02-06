@@ -47,11 +47,14 @@ export const maintainCharacterData = (
   // 更新升级所需经验
   _.set(character, '升级所需经验', getRequiredXpForLevel(character.等级));
 
-  // 确保累计经验值不低于当前等级的最低要求
+  // 确保累计经验值不低于当前等级的最低要求，同时防止经验被意外降低
   if (character.等级 > 0) {
     const minExp = getRequiredXpForLevel(character.等级 - 1);
-    if (character.累计经验值 < minExp) {
-      _.set(character, '累计经验值', minExp);
+    const oldExp = safeGet(old_variables, 'stat_data.主角.累计经验值', 0);
+    // 取当前经验、最低要求和旧经验中的最大值，防止经验倒退
+    const safeExp = Math.max(Number(character.累计经验值) || 0, Number(minExp) || 0, oldExp);
+    if (character.累计经验值 !== safeExp) {
+      _.set(character, '累计经验值', safeExp);
     }
   }
 
