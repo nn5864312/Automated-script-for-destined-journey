@@ -14,6 +14,7 @@ export const DefaultLogData: LogData = {
   bankruptcyCount: 0,
   illegalLevelUpId: [],
   totalFPGained: 0,
+  timeRecord: {},
 };
 
 /**
@@ -96,6 +97,26 @@ const checkFPGained = (current: MessageVariables, old: MessageVariables, log: Lo
 };
 
 /**
+ * 记录每个楼层的时间
+ * 从 stat_data.世界.时间 获取当前时间，以楼层ID为键存储到 log.timeRecord
+ */
+const recordTime = (current: MessageVariables, log: LogData): void => {
+  // 获取当前世界时间
+  const time = safeGet(current, 'stat_data.世界.时间', '');
+
+  // 如果时间为空则不记录
+  if (!time) {
+    return;
+  }
+
+  // 获取楼层ID
+  const messageId = getLastMessageId();
+
+  // 记录该楼层的时间
+  log.timeRecord[messageId] = time;
+};
+
+/**
  * 记录AI非法提升等级
  * 由 maintain.ts 调用，使用 getLastMessageId() 获取发生错误的楼层号
  */
@@ -139,6 +160,7 @@ export const logSystem = (
   checkCurrencyDebt(new_variables, log);
   checkBankruptcy(new_variables, old_variables, log);
   checkFPGained(new_variables, old_variables, log);
+  recordTime(new_variables, log);
 
   // 使用 insertOrAssignVariables 持久化 date.log 到消息楼层变量
   // 只更新本函数管理的字段，避免覆盖 recordIllegalLevelUp 更新的 illegalLevelUpCount
@@ -150,6 +172,7 @@ export const logSystem = (
           maxCurrencyDebt: log.maxCurrencyDebt,
           bankruptcyCount: log.bankruptcyCount,
           totalFPGained: log.totalFPGained,
+          timeRecord: log.timeRecord,
         },
       },
     },
