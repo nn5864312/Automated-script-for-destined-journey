@@ -15,6 +15,7 @@ export const DefaultLogData: LogData = {
   illegalLevelUpId: [],
   totalFPGained: 0,
   timeRecord: {},
+  locationRecord: {},
 };
 
 /**
@@ -117,6 +118,26 @@ const recordTime = (current: MessageVariables, log: LogData): void => {
 };
 
 /**
+ * 记录每个楼层的地点
+ * 从 stat_data.世界.地点 获取当前地点，以楼层ID为键存储到 log.locationRecord
+ */
+const recordLocation = (current: MessageVariables, log: LogData): void => {
+  // 获取当前世界地点
+  const location = safeGet(current, 'stat_data.世界.地点', '');
+
+  // 如果地点为空则不记录
+  if (!location) {
+    return;
+  }
+
+  // 获取楼层ID
+  const messageId = getLastMessageId();
+
+  // 记录该楼层的地点
+  log.locationRecord[messageId] = location;
+};
+
+/**
  * 记录AI非法提升等级
  * 由 maintain.ts 调用，使用 getLastMessageId() 获取发生错误的楼层号
  */
@@ -161,6 +182,7 @@ export const logSystem = (
   checkBankruptcy(new_variables, old_variables, log);
   checkFPGained(new_variables, old_variables, log);
   recordTime(new_variables, log);
+  recordLocation(new_variables, log);
 
   // 使用 insertOrAssignVariables 持久化 date.log 到消息楼层变量
   // 只更新本函数管理的字段，避免覆盖 recordIllegalLevelUp 更新的 illegalLevelUpCount
@@ -173,6 +195,7 @@ export const logSystem = (
           bankruptcyCount: log.bankruptcyCount,
           totalFPGained: log.totalFPGained,
           timeRecord: log.timeRecord,
+          locationRecord: log.locationRecord,
         },
       },
     },

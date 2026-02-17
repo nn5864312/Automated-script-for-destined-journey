@@ -73,6 +73,8 @@ export interface LogData {
   totalFPGained: number;
   /** 每个楼层的时间记录 - 楼层ID到时间字符串的映射 */
   timeRecord: Record<number, string>;
+  /** 每个楼层的地点记录 - 楼层ID到地点字符串的映射 */
+  locationRecord: Record<number, string>;
 }
 
 /** 内部数据类型 - 用于脚本持久化 */
