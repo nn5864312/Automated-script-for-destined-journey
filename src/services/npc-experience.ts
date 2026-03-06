@@ -92,10 +92,15 @@ export const processNPCExperienceAndLevel = (
     }
 
     const shouldProcessExp = !isInitDryRun && !isManualLevelSet;
+    const characterLevel = safeGet(new_variables, 'stat_data.主角.等级', 1);
 
     // 经验增加：在场 + 经验增量 > 0 + （需要契约时要命定契约为 true）
     const canGainExp =
-      shouldProcessExp && npc.在场 && deltaExp > 0 && (!requiresContract || npc.命定契约);
+      shouldProcessExp &&
+      npc.在场 &&
+      deltaExp > 0 &&
+      (!requiresContract || npc.命定契约) &&
+      npc.等级 < characterLevel;
     if (canGainExp) {
       _.set(npcData, 'exp', npcData.exp + deltaExp);
     }
