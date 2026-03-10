@@ -85,6 +85,8 @@ export const buildVariables = (overrides: DeepPartial<MessageVariables> = {}): M
         bankruptcyCount: 0,
         illegalLevelUpId: [],
         totalFPGained: 0,
+        timeRecord: {},
+        locationRecord: {},
       },
     },
   };
