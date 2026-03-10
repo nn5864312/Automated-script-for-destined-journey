@@ -21,7 +21,7 @@ export const processNPCExperienceAndLevel = (
   new_variables: MessageVariables,
   old_variables: MessageVariables
 ): void => {
-  const destined = safeGet(new_variables, 'stat_data.命定系统.关系列表', {} as Record<string, any>);
+  const destined = safeGet(new_variables, 'stat_data.关系列表', {} as Record<string, any>);
   const requiresContract = safeGet(new_variables, 'date.requiresContractForExp', true);
   const npcLevelUpWithPlayer = safeGet(new_variables, 'date.npcLevelUpWithPlayer', true);
 
@@ -68,7 +68,7 @@ export const processNPCExperienceAndLevel = (
 
     const oldNpcLevel = safeGet(
       old_variables,
-      `stat_data.命定系统.关系列表.${name}.等级`,
+      `stat_data.关系列表.${name}.等级`,
       undefined as number | undefined
     );
     const isManualLevelSet = typeof oldNpcLevel !== 'number' || oldNpcLevel !== npc.等级;

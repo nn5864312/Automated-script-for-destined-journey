@@ -18,33 +18,48 @@ const AscensionQuestIds = {
 
 const AscensionQuests = {
   [AscensionQuestIds.element]: {
-    简介: '等级已锁，无法获取经验，需满足条件：获取至少 1 个要素。',
+    状态: '进行中',
+    关注度: '高',
+    进展: '尚未开始收集要素。',
+    详情: '等级已锁，无法获取经验，需满足条件：获取至少 1 个要素。',
     目标: '以一枚要素点燃登神之火，让长阶回应你的名。',
     奖励: '长阶初启，神火与要素共鸣。',
   },
   [AscensionQuestIds.power]: {
-    简介: '等级已锁，无法获取经验，需满足条件：融合 3 个要素为 1 个权能。',
+    状态: '进行中',
+    关注度: '高',
+    进展: '权能尚未开始融合。',
+    详情: '等级已锁，无法获取经验，需满足条件：融合 3 个要素为 1 个权能。',
     目标: '三要素归一，淬炼成唯一权能。',
     奖励: '权能成形，诸力归位于你。',
   },
   [AscensionQuestIds.law]: {
-    简介: '等级已锁，无法获取经验，需满足条件：以权能融合法则源质，铸成法则。',
+    状态: '进行中',
+    关注度: '高',
+    进展: '法则源质未准备就绪。',
+    详情: '等级已锁，无法获取经验，需满足条件：以权能融合法则源质，铸成法则。',
     目标: '寻得法则源质，与权能相合，点燃法则真名。',
     奖励: '法则凝就，秩序向你低首。',
   },
   [AscensionQuestIds.godPosition]: {
-    简介: '等级已锁，无法获取经验，需满足条件：获得神位。',
+    状态: '进行中',
+    关注度: '高',
+    进展: '登神仪式尚未筹备。',
+    详情: '等级已锁，无法获取经验，需满足条件：获得神位。',
     目标: '行登神之礼，确立神位。',
     奖励: '神位应诺，尊名刻入天穹。',
   },
   [AscensionQuestIds.godNation]: {
-    简介: '完成条件：建立神国。',
+    状态: '进行中',
+    关注度: '高',
+    进展: '神国建设尚未启动。',
+    详情: '完成条件：建立神国。',
     目标: '赐予神国之名，令其在诸界立足。',
     奖励: '神国初立，法则之缚自此尽解。',
   },
 } as const;
 
-const LawSourceTag = '法则源质';
+const LawSourceTagPattern = /法则源质/;
 const LawSourceNamePattern = /^༺.+༻$/;
 
 const getRequiredXpNumber = (character: Record<string, any>): number | null => {
@@ -59,7 +74,11 @@ const isLawSourceItem = (item: Record<string, any>, itemName: string): boolean =
 
   const tags = safeGet(item, '标签', [] as string[]);
 
-  return Array.isArray(tags) && tags.includes(LawSourceTag);
+  if (!Array.isArray(tags)) {
+    return false;
+  }
+
+  return tags.some(tag => LawSourceTagPattern.test(String(tag)));
 };
 
 const getLawSourceKeys = (backpack: Record<string, any>): string[] => {
@@ -91,7 +110,9 @@ const isExpFull = (character: Record<string, any>): boolean => {
 };
 
 const upsertQuest = (quests: QuestList, quest_id: string): void => {
-  _.set(quests, quest_id, AscensionQuests[quest_id as keyof typeof AscensionQuests]);
+  if (!_.has(quests, quest_id)) {
+    _.set(quests, quest_id, AscensionQuests[quest_id as keyof typeof AscensionQuests]);
+  }
 };
 
 const removeQuest = (quests: QuestList, quest_id: string): void => {

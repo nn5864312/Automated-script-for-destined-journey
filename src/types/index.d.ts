@@ -10,11 +10,8 @@ export type StatData = z.infer<typeof Schema>;
 /** 角色类型 */
 export type Character = StatData['主角'];
 
-/** 命定系统类型 */
-export type DestinySystem = StatData['命定系统'];
-
 /** 关系列表类型 */
-export type Partner = DestinySystem['关系列表'][string];
+export type Partner = StatData['关系列表'][string];
 
 /** 登神长阶类型 */
 export type Ascension = StatData['主角']['登神长阶'];

@@ -84,12 +84,12 @@ const checkBankruptcy = (current: MessageVariables, old: MessageVariables, log: 
  * 当命运点数增加时，累加到总获取量
  */
 const checkFPGained = (current: MessageVariables, old: MessageVariables, log: LogData): void => {
-  if (!_.has(old, 'stat_data.命定系统.命运点数')) {
+  if (!_.has(old, 'stat_data.命运点数')) {
     return;
   }
 
-  const currentFP = safeGet(current, 'stat_data.命定系统.命运点数', 0);
-  const oldFP = safeGet(old, 'stat_data.命定系统.命运点数', 0);
+  const currentFP = safeGet(current, 'stat_data.命运点数', 0);
+  const oldFP = safeGet(old, 'stat_data.命运点数', 0);
 
   if (currentFP > oldFP) {
     const gained = currentFP - oldFP;

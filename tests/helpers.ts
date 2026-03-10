@@ -48,10 +48,8 @@ export const buildVariables = (overrides: DeepPartial<MessageVariables> = {}): M
           神国: { 名称: '', 描述: '' },
         },
       },
-      命定系统: {
-        命运点数: 0,
-        关系列表: {},
-      },
+      命运点数: 0,
+      关系列表: {},
       新闻: {
         阿斯塔利亚快讯: {
           势力要闻: '',
