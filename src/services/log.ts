@@ -101,7 +101,7 @@ const checkFPGained = (current: MessageVariables, old: MessageVariables, log: Lo
  * 记录每个楼层的时间
  * 从 stat_data.世界.时间 获取当前时间，以楼层ID为键存储到 log.timeRecord
  */
-const recordTime = (current: MessageVariables, log: LogData): void => {
+const _recordTime = (current: MessageVariables, log: LogData): void => {
   // 获取当前世界时间
   const time = safeGet(current, 'stat_data.世界.时间', '');
 
@@ -121,7 +121,7 @@ const recordTime = (current: MessageVariables, log: LogData): void => {
  * 记录每个楼层的地点
  * 从 stat_data.世界.地点 获取当前地点，以楼层ID为键存储到 log.locationRecord
  */
-const recordLocation = (current: MessageVariables, log: LogData): void => {
+const _recordLocation = (current: MessageVariables, log: LogData): void => {
   // 获取当前世界地点
   const location = safeGet(current, 'stat_data.世界.地点', '');
 
@@ -181,8 +181,6 @@ export const logSystem = (
   checkCurrencyDebt(new_variables, log);
   checkBankruptcy(new_variables, old_variables, log);
   checkFPGained(new_variables, old_variables, log);
-  recordTime(new_variables, log);
-  recordLocation(new_variables, log);
 
   // 使用 insertOrAssignVariables 持久化 date.log 到消息楼层变量
   // 只更新本函数管理的字段，避免覆盖 recordIllegalLevelUp 更新的 illegalLevelUpCount
