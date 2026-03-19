@@ -33,11 +33,11 @@
     "klona": "^2.0.6",
     "lodash": "^4.17.23",
     "prettier": "^3.8.1",
-    "terser": "^5.46.0",
+    "terser": "^5.46.1",
     "ts-jest": "^29.4.6",
     "type-fest": "^5.4.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0",
+    "typescript-eslint": "^8.57.1",
     "vite": "^7.3.1",
     "zod": "^4.3.6"
   }
