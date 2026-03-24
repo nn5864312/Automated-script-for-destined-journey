@@ -32,10 +32,22 @@ export const processExperienceAndLevel = (
     'stat_data.主角.生命层级',
     getTierForLevel(initialLevel)
   );
+  // 记录升级前的五维属性快照，后续统一按“旧值 + 本轮增量”回写，
+  // 避免外部预写属性后再次被本轮升级逻辑叠加。
+  const initialAttributes = _.fromPairs(
+    _.map(AttributeKeys, attrKey => [
+      attrKey,
+      safeGet(old_variables, `stat_data.主角.属性.${attrKey}`, 0),
+    ])
+  ) as Record<(typeof AttributeKeys)[number], number>;
 
   // 记录本轮升级收益，避免受外部预写污染
   let gainedAP = 0;
   const tierBreakthroughs: string[] = [];
+  // 记录本轮层级突破带来的属性增量，最后统一回写，避免受外部预写污染。
+  const milestoneAttributeGain = _.fromPairs(
+    _.map(AttributeKeys, attrKey => [attrKey, 0])
+  ) as Record<(typeof AttributeKeys)[number], number>;
 
   // 升级处理循环
   while (character.累计经验值 >= Number(character.升级所需经验) && !isMaxLevel(character.等级)) {
@@ -58,8 +70,7 @@ export const processExperienceAndLevel = (
     const milestone = getMilestoneForLevel(character.等级);
     if (milestone) {
       _.forEach(AttributeKeys, attrKey => {
-        const currentAttr = safeGet(character, `属性.${attrKey}`, 0);
-        _.set(character, `属性.${attrKey}`, currentAttr + milestone.attributes);
+        milestoneAttributeGain[attrKey] += milestone.attributes;
       });
 
       _.set(character, '生命层级', milestone.tier);
@@ -71,6 +82,14 @@ export const processExperienceAndLevel = (
   }
 
   _.set(character, '属性点', initialAttributePoints + gainedAP);
+  // 统一按“旧属性 + 本轮层级突破增量”回写，避免在被外部修改过的当前值上重复叠加。
+  _.forEach(AttributeKeys, attrKey => {
+    _.set(
+      character,
+      `属性.${attrKey}`,
+      initialAttributes[attrKey] + milestoneAttributeGain[attrKey]
+    );
+  });
   _.set(character, '生命层级', getTierForLevel(character.等级));
 
   // 将升级提示存储到 date.levelUpCharacter，供后续注入使用

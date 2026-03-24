@@ -10,6 +10,7 @@
 import {
   AttributeKeys,
   GameConfig,
+  getMilestoneForLevel,
   getRequiredXpForLevel,
   getTierForLevel,
   isMaxLevel,
@@ -79,6 +80,24 @@ export const processNPCExperienceAndLevel = (
       undefined as number | undefined
     );
     const isManualLevelSet = typeof oldNpcLevel !== 'number' || oldNpcLevel !== npc.等级;
+    // 记录升级前的五维属性快照，后续统一按“旧值 + 本轮增量”回写，
+    // 避免外部预写属性后再次被本轮升级逻辑叠加。
+    const initialAttributes = _.fromPairs(
+      _.map(AttributeKeys, attrKey => [
+        attrKey,
+        safeGet(old_variables, `stat_data.关系列表.${name}.属性.${attrKey}`, 0),
+      ])
+    ) as Record<(typeof AttributeKeys)[number], number>;
+    // 记录普通升级时的随机属性增量，不直接写回当前属性，
+    // 这样即使外部提前改过属性，也不会在污染后的值上继续叠加。
+    const levelAttributeGain = _.fromPairs(_.map(AttributeKeys, attrKey => [attrKey, 0])) as Record<
+      (typeof AttributeKeys)[number],
+      number
+    >;
+    // 记录层级突破带来的里程碑属性增量，最后统一回写，避免受外部预写污染。
+    const milestoneAttributeGain = _.fromPairs(
+      _.map(AttributeKeys, attrKey => [attrKey, 0])
+    ) as Record<(typeof AttributeKeys)[number], number>;
 
     // 同步等级（使用 _.set 确保写入）
     _.set(npcData, 'level', npc.等级);
@@ -126,8 +145,14 @@ export const processNPCExperienceAndLevel = (
 
       if (npcData.level % GameConfig.ApAcquisitionLevel === 0) {
         const randomAttributeKey = _.sample(AttributeKeys) ?? AttributeKeys[0];
-        const currentAttr = safeGet(npc, `属性.${randomAttributeKey}`, 0);
-        _.set(npc, `属性.${randomAttributeKey}`, currentAttr + 1);
+        levelAttributeGain[randomAttributeKey] += 1;
+      }
+
+      const milestone = getMilestoneForLevel(npcData.level);
+      if (milestone) {
+        _.forEach(AttributeKeys, attrKey => {
+          milestoneAttributeGain[attrKey] += milestone.attributes;
+        });
       }
 
       const nextTier = getTierForLevel(npcData.level);
@@ -136,6 +161,16 @@ export const processNPCExperienceAndLevel = (
         previousTier = nextTier;
       }
     }
+
+    // 统一按“旧属性 + 本轮随机升级增量 + 本轮层级突破增量”回写，
+    // 避免在被外部修改过的当前值上重复叠加。
+    _.forEach(AttributeKeys, attrKey => {
+      _.set(
+        npc,
+        `属性.${attrKey}`,
+        initialAttributes[attrKey] + levelAttributeGain[attrKey] + milestoneAttributeGain[attrKey]
+      );
+    });
 
     // 同步升级后的等级回关系列表（使用 _.set 确保写入）
     if (npc.等级 < npcData.level) {
