@@ -7,7 +7,7 @@
  * - 本模块在 User 消息发送前读取 date.levelUp 并注入提示
  * - 注入后清理 date.levelUp，确保提示只出现一次
  */
-import type { LevelUpData, MessageVariables } from '../types';
+import type { MessageVariables, CharacterLevelUpData, NpcLevelUpData } from '../types';
 import { injectMultiplePrompts, safeGet } from '../utils';
 
 /**
@@ -18,10 +18,15 @@ import { injectMultiplePrompts, safeGet } from '../utils';
  */
 export const injectLevelPrompts = (variables: MessageVariables): void => {
   // 获取升级数据
-  const levelUpData = safeGet(variables, 'date.levelUp', null as LevelUpData | null);
+  const characterLevelUp = safeGet(
+    variables,
+    'date.levelUpCharacter',
+    null as CharacterLevelUpData | null
+  );
+  const npcLevelUp = safeGet(variables, 'date.levelUpNpcs', null as NpcLevelUpData | null);
 
   // 如果没有升级数据，直接返回
-  if (!levelUpData) {
+  if (!characterLevelUp && !npcLevelUp) {
     return;
   }
 
@@ -35,8 +40,8 @@ export const injectLevelPrompts = (variables: MessageVariables): void => {
   }> = [];
 
   // 主角升级提示
-  if (levelUpData.character) {
-    const { fromLevel, toLevel, gainedAP } = levelUpData.character;
+  if (characterLevelUp) {
+    const { fromLevel, toLevel, gainedAP } = characterLevelUp;
 
     prompts.push({
       id: '等级提升',
@@ -59,10 +64,10 @@ export const injectLevelPrompts = (variables: MessageVariables): void => {
   }
 
   // NPC 升级提示
-  if (levelUpData.npcs && levelUpData.npcs.length > 0) {
+  if (npcLevelUp?.npcs && npcLevelUp.npcs.length > 0) {
     prompts.push({
       id: 'NPC等级提升',
-      content: `core_system: ${levelUpData.npcs.join('; ')}`,
+      content: `core_system: ${npcLevelUp.npcs.join('; ')}`,
       position: 'in_chat',
       depth: 0,
       role: 'system',
@@ -75,5 +80,8 @@ export const injectLevelPrompts = (variables: MessageVariables): void => {
   }
 
   // 清理升级数据，确保提示只出现一次
-  insertOrAssignVariables({ date: { levelUp: null } }, { type: 'message', message_id: -2 });
+  insertOrAssignVariables(
+    { date: { levelUpCharacter: null, levelUpNpcs: null } },
+    { type: 'message', message_id: -2 }
+  );
 };

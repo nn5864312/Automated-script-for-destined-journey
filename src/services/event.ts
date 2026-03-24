@@ -13,7 +13,7 @@ import { safeGet } from '../utils';
  *
  * @param current_variables - 当前的变量数据
  */
-export const processEvent = (current_variables: MessageVariables): void => {
+export const processEvent = (current_variables: MessageVariables): boolean => {
   // 清理旧的注入
   uninjectPrompts(['已完成事件']);
 
@@ -39,6 +39,8 @@ export const processEvent = (current_variables: MessageVariables): void => {
     );
   }
 
+  let shouldDeleteEventCache = false;
+
   // 事件结束处理
   if (isEventEnded) {
     // 清理事件相关的注入
@@ -58,7 +60,9 @@ export const processEvent = (current_variables: MessageVariables): void => {
       _.set(eventChain, '开启', false);
     }
 
-    // 清理 date 中的事件数据
-    deleteVariable('date.event.cache', { type: 'message' });
+    // 延迟到本轮处理结束后统一删除
+    shouldDeleteEventCache = true;
   }
+
+  return shouldDeleteEventCache;
 };

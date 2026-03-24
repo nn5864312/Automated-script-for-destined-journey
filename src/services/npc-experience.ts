@@ -8,7 +8,7 @@
  */
 
 import { getRequiredXpForLevel, getTierForLevel, isMaxLevel, LevelXpTable } from '../config';
-import type { LevelUpData, MessageVariables, NpcExpData } from '../types';
+import type { MessageVariables, NpcExpData, NpcLevelUpData } from '../types';
 import { safeGet } from '../utils';
 
 /**
@@ -121,17 +121,14 @@ export const processNPCExperienceAndLevel = (
     }
   });
 
-  // 将 NPC 升级信息存储到 date.levelUp，供后续注入使用
+  // 将 NPC 升级信息存储到独立的顶层路径，避免与主角升级提示互相覆盖
   if (levelUpPrompts.length > 0) {
-    const existingLevelUp = safeGet(new_variables, 'date.levelUp', {} as LevelUpData);
-    const levelUpData: LevelUpData = {
-      ...existingLevelUp,
+    const levelUpData: NpcLevelUpData = {
       npcs: levelUpPrompts,
     };
 
-    // 使用 insertOrAssignVariables 持久化 date.npcs 和 date.levelUp 到消息楼层变量
     insertOrAssignVariables(
-      { date: { npcs: dateNpcs, levelUp: levelUpData } },
+      { date: { npcs: dateNpcs, levelUpNpcs: levelUpData } },
       { type: 'message' }
     );
   } else {

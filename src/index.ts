@@ -70,8 +70,12 @@ const handleVariableUpdate = (data: Mvu.MvuData, data_before_update: Mvu.MvuData
   maintainCharacterData(current, old);
   processExperienceAndLevel(current, old);
   processNPCExperienceAndLevel(current, old);
-  processEvent(current);
+  const shouldDeleteEventCache = processEvent(current);
   logSystem(current, old);
+
+  if (shouldDeleteEventCache) {
+    deleteVariable('date.event.cache', { type: 'message' });
+  }
 };
 
 /**

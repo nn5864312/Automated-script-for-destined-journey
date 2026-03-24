@@ -9,7 +9,7 @@ import {
   getRequiredXpForLevel,
   isMaxLevel,
 } from '../config';
-import type { LevelUpData, MessageVariables } from '../types';
+import type { CharacterLevelUpData, MessageVariables } from '../types';
 import { safeGet } from '../utils';
 import { canBreakAscensionLevel } from './ascension';
 
@@ -60,20 +60,12 @@ export const processExperienceAndLevel = (
 
   // 将升级信息存储到 date.levelUp，供后续注入使用
   if (character.等级 > initialLevel) {
-    const levelUpData: LevelUpData = {
-      character: {
-        fromLevel: initialLevel,
-        toLevel: character.等级,
-        gainedAP,
-      },
+    const levelUpData: CharacterLevelUpData = {
+      fromLevel: initialLevel,
+      toLevel: character.等级,
+      gainedAP,
     };
 
-    // 合并现有的 NPC 升级数据（如果有）
-    const existingLevelUp = safeGet(new_variables, 'date.levelUp', {} as LevelUpData);
-    if (existingLevelUp.npcs) {
-      levelUpData.npcs = existingLevelUp.npcs;
-    }
-
-    insertOrAssignVariables({ date: { levelUp: levelUpData } }, { type: 'message' });
+    insertOrAssignVariables({ date: { levelUpCharacter: levelUpData } }, { type: 'message' });
   }
 };
