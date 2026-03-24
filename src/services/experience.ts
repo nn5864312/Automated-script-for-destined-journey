@@ -26,25 +26,21 @@ export const processExperienceAndLevel = (
 ): void => {
   const character = safeGet(new_variables, 'stat_data.主角', {} as any);
   const initialLevel = safeGet(old_variables, 'stat_data.主角.等级', character.等级);
-  const initialAttributePoints = safeGet(old_variables, 'stat_data.主角.属性点', 0);
+  const initialAttributePoints = Number(character.属性点) || 0;
   let previousTier = safeGet(
     old_variables,
     'stat_data.主角.生命层级',
     getTierForLevel(initialLevel)
   );
-  // 记录升级前的五维属性快照，后续统一按“旧值 + 本轮增量”回写，
-  // 避免外部预写属性后再次被本轮升级逻辑叠加。
   const initialAttributes = _.fromPairs(
     _.map(AttributeKeys, attrKey => [
       attrKey,
-      safeGet(old_variables, `stat_data.主角.属性.${attrKey}`, 0),
+      Number(safeGet(character, `属性.${attrKey}`, 0)) || 0,
     ])
   ) as Record<(typeof AttributeKeys)[number], number>;
 
-  // 记录本轮升级收益，避免受外部预写污染
   let gainedAP = 0;
   const tierBreakthroughs: string[] = [];
-  // 记录本轮层级突破带来的属性增量，最后统一回写，避免受外部预写污染。
   const milestoneAttributeGain = _.fromPairs(
     _.map(AttributeKeys, attrKey => [attrKey, 0])
   ) as Record<(typeof AttributeKeys)[number], number>;
@@ -61,7 +57,7 @@ export const processExperienceAndLevel = (
     _.set(character, '等级', character.等级 + 1);
     _.set(character, '升级所需经验', getRequiredXpForLevel(character.等级));
 
-    // 属性点获得（基于旧值与本轮增量结算，避免受外部预写污染）
+    // 属性点获得
     if (character.等级 % GameConfig.ApAcquisitionLevel === 0) {
       gainedAP += 1;
     }
@@ -82,7 +78,8 @@ export const processExperienceAndLevel = (
   }
 
   _.set(character, '属性点', initialAttributePoints + gainedAP);
-  // 统一按“旧属性 + 本轮层级突破增量”回写，避免在被外部修改过的当前值上重复叠加。
+  // 统一按“当前属性 + 本轮层级突破增量”回写，避免旧值初始化污染，
+  // 同时保留玩家/外部对当前属性的自由调整。
   _.forEach(AttributeKeys, attrKey => {
     _.set(
       character,

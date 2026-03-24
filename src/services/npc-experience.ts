@@ -80,21 +80,15 @@ export const processNPCExperienceAndLevel = (
       undefined as number | undefined
     );
     const isManualLevelSet = typeof oldNpcLevel !== 'number' || oldNpcLevel !== npc.等级;
-    // 记录升级前的五维属性快照，后续统一按“旧值 + 本轮增量”回写，
-    // 避免外部预写属性后再次被本轮升级逻辑叠加。
     const initialAttributes = _.fromPairs(
-      _.map(AttributeKeys, attrKey => [
-        attrKey,
-        safeGet(old_variables, `stat_data.关系列表.${name}.属性.${attrKey}`, 0),
-      ])
+      _.map(AttributeKeys, attrKey => [attrKey, Number(safeGet(npc, `属性.${attrKey}`, 0)) || 0])
     ) as Record<(typeof AttributeKeys)[number], number>;
-    // 记录普通升级时的随机属性增量，不直接写回当前属性，
-    // 这样即使外部提前改过属性，也不会在污染后的值上继续叠加。
+    // 记录普通升级时的随机属性增量
     const levelAttributeGain = _.fromPairs(_.map(AttributeKeys, attrKey => [attrKey, 0])) as Record<
       (typeof AttributeKeys)[number],
       number
     >;
-    // 记录层级突破带来的里程碑属性增量，最后统一回写，避免受外部预写污染。
+    // 记录层级突破带来的里程碑属性增量
     const milestoneAttributeGain = _.fromPairs(
       _.map(AttributeKeys, attrKey => [attrKey, 0])
     ) as Record<(typeof AttributeKeys)[number], number>;
@@ -162,8 +156,8 @@ export const processNPCExperienceAndLevel = (
       }
     }
 
-    // 统一按“旧属性 + 本轮随机升级增量 + 本轮层级突破增量”回写，
-    // 避免在被外部修改过的当前值上重复叠加。
+    // 统一按“当前属性 + 本轮随机升级增量 + 本轮层级突破增量”回写，
+    // 避免旧值初始化污染，同时保留玩家/外部对当前属性的自由调整。
     _.forEach(AttributeKeys, attrKey => {
       _.set(
         npc,

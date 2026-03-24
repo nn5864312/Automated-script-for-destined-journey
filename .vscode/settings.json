@@ -1,0 +1,10 @@
+{
+  "liveServer.settings.NoBrowser": false,
+  "liveServer.settings.host": "127.0.0.1",
+  "liveServer.settings.cors": true,
+  "liveServer.settings.headers": {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "*"
+  }
+}
