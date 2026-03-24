@@ -7,9 +7,10 @@ import {
   GameConfig,
   getMilestoneForLevel,
   getRequiredXpForLevel,
+  getTierForLevel,
   isMaxLevel,
 } from '../config';
-import type { CharacterLevelUpData, MessageVariables } from '../types';
+import type { MessageVariables } from '../types';
 import { safeGet } from '../utils';
 import { canBreakAscensionLevel } from './ascension';
 
@@ -25,9 +26,16 @@ export const processExperienceAndLevel = (
 ): void => {
   const character = safeGet(new_variables, 'stat_data.主角', {} as any);
   const initialLevel = safeGet(old_variables, 'stat_data.主角.等级', character.等级);
+  const initialAttributePoints = safeGet(old_variables, 'stat_data.主角.属性点', 0);
+  let previousTier = safeGet(
+    old_variables,
+    'stat_data.主角.生命层级',
+    getTierForLevel(initialLevel)
+  );
 
-  // 记录是否获得属性点
-  let gainedAP = false;
+  // 记录本轮升级收益，避免受外部预写污染
+  let gainedAP = 0;
+  const tierBreakthroughs: string[] = [];
 
   // 升级处理循环
   while (character.累计经验值 >= Number(character.升级所需经验) && !isMaxLevel(character.等级)) {
@@ -41,10 +49,9 @@ export const processExperienceAndLevel = (
     _.set(character, '等级', character.等级 + 1);
     _.set(character, '升级所需经验', getRequiredXpForLevel(character.等级));
 
-    // 属性点获得
+    // 属性点获得（基于旧值与本轮增量结算，避免受外部预写污染）
     if (character.等级 % GameConfig.ApAcquisitionLevel === 0) {
-      _.set(character, '属性点', safeGet(character, '属性点', 0) + 1);
-      gainedAP = true;
+      gainedAP += 1;
     }
 
     // 里程碑加成
@@ -54,18 +61,32 @@ export const processExperienceAndLevel = (
         const currentAttr = safeGet(character, `属性.${attrKey}`, 0);
         _.set(character, `属性.${attrKey}`, currentAttr + milestone.attributes);
       });
+
       _.set(character, '生命层级', milestone.tier);
+      if (previousTier !== milestone.tier) {
+        tierBreakthroughs.push(`{{user}}的生命层级从${previousTier}突破到了${milestone.tier}`);
+        previousTier = milestone.tier;
+      }
     }
   }
 
-  // 将升级信息存储到 date.levelUp，供后续注入使用
-  if (character.等级 > initialLevel) {
-    const levelUpData: CharacterLevelUpData = {
-      fromLevel: initialLevel,
-      toLevel: character.等级,
-      gainedAP,
-    };
+  _.set(character, '属性点', initialAttributePoints + gainedAP);
+  _.set(character, '生命层级', getTierForLevel(character.等级));
 
-    insertOrAssignVariables({ date: { levelUpCharacter: levelUpData } }, { type: 'message' });
+  // 将升级提示存储到 date.levelUpCharacter，供后续注入使用
+  if (character.等级 > initialLevel) {
+    const levelUpPrompts: string[] = [
+      `{{user}}的等级从${initialLevel}级提升到了${character.等级}级`,
+    ];
+
+    if (gainedAP > 0) {
+      levelUpPrompts.push(`{{user}}升级了，获得了${gainedAP}点属性点。引导{{user}}使用属性点`);
+    }
+
+    if (tierBreakthroughs.length > 0) {
+      levelUpPrompts.push(...tierBreakthroughs);
+    }
+
+    insertOrAssignVariables({ date: { levelUpCharacter: levelUpPrompts } }, { type: 'message' });
   }
 };

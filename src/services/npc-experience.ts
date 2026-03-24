@@ -7,8 +7,15 @@
  * - 只有「在场」（如果需要契约则「命定契约」）的 NPC 才能获得经验
  */
 
-import { getRequiredXpForLevel, getTierForLevel, isMaxLevel, LevelXpTable } from '../config';
-import type { MessageVariables, NpcExpData, NpcLevelUpData } from '../types';
+import {
+  AttributeKeys,
+  GameConfig,
+  getRequiredXpForLevel,
+  getTierForLevel,
+  isMaxLevel,
+  LevelXpTable,
+} from '../config';
+import type { MessageVariables, NpcExpData } from '../types';
 import { safeGet } from '../utils';
 
 /**
@@ -107,14 +114,32 @@ export const processNPCExperienceAndLevel = (
 
     // 升级检查
     const initialLevel = npc.等级;
+    let previousTier = safeGet(
+      old_variables,
+      `stat_data.关系列表.${name}.生命层级`,
+      getTierForLevel(initialLevel)
+    );
+
     while (shouldProcessExp && npcData.exp >= npcData.required_exp && !isMaxLevel(npcData.level)) {
       _.set(npcData, 'level', npcData.level + 1);
       _.set(npcData, 'required_exp', getRequiredXpForLevel(npcData.level));
+
+      if (npcData.level % GameConfig.ApAcquisitionLevel === 0) {
+        const randomAttributeKey = _.sample(AttributeKeys) ?? AttributeKeys[0];
+        const currentAttr = safeGet(npc, `属性.${randomAttributeKey}`, 0);
+        _.set(npc, `属性.${randomAttributeKey}`, currentAttr + 1);
+      }
+
+      const nextTier = getTierForLevel(npcData.level);
+      if (previousTier !== nextTier) {
+        levelUpPrompts.push(`${name}的生命层级从${previousTier}突破到了${nextTier}`);
+        previousTier = nextTier;
+      }
     }
 
     // 同步升级后的等级回关系列表（使用 _.set 确保写入）
     if (npc.等级 < npcData.level) {
-      levelUpPrompts.push(`${name}从LV${initialLevel}提升到LV${npcData.level}`);
+      levelUpPrompts.unshift(`${name}从LV${initialLevel}提升到LV${npcData.level}`);
       _.set(npc, '等级', npcData.level);
       // 同步生命层级
       _.set(npc, '生命层级', getTierForLevel(npcData.level));
@@ -123,12 +148,8 @@ export const processNPCExperienceAndLevel = (
 
   // 将 NPC 升级信息存储到独立的顶层路径，避免与主角升级提示互相覆盖
   if (levelUpPrompts.length > 0) {
-    const levelUpData: NpcLevelUpData = {
-      npcs: levelUpPrompts,
-    };
-
     insertOrAssignVariables(
-      { date: { npcs: dateNpcs, levelUpNpcs: levelUpData } },
+      { date: { npcs: dateNpcs, levelUpNpcs: levelUpPrompts } },
       { type: 'message' }
     );
   } else {

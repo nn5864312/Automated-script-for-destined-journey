@@ -6,7 +6,6 @@ import { klona } from 'klona';
 
 /** 需要清理的注入 ID 列表 */
 const InjectIdsToRemove = [
-  '属性点获得',
   '等级提升',
   'NPC等级提升',
   '同伴种族',
