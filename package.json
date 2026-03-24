@@ -1,6 +1,6 @@
 {
   "name": "automated-script-for-destined-journey",
-  "version": "3.3.5",
+  "version": "3.3.6",
   "description": "命定的异世界开发之旅自动化脚本 - 用于处理角色升级、货币系统、事件链管理等游戏机制",
   "type": "module",
   "scripts": {
@@ -37,7 +37,7 @@
     "ts-jest": "^29.4.6",
     "type-fest": "^5.5.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1",
+    "typescript-eslint": "^8.57.2",
     "vite": "^7.3.1",
     "zod": "^4.3.6"
   }
