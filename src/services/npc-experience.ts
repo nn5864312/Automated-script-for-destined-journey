@@ -19,6 +19,76 @@ import {
 import type { MessageVariables, NpcExpData } from '../types';
 import { safeGet } from '../utils';
 
+/** NPC 各生命层级的单项属性上限 */
+const NPC_TIER_ATTR_CAP: Readonly<Record<string, number>> = {
+  '第一层级/普通': 8,
+  '第二层级/中坚': 10,
+  '第三层级/精英': 12,
+  '第四层级/史诗': 14,
+  '第五层级/传说': 16,
+  '第六层级/神话': 18,
+  '第七层级/登神': 20,
+};
+
+/** 根据生命层级获取属性上限 */
+const getNpcAttrCapByTier = (tier: string): number => {
+  return NPC_TIER_ATTR_CAP[tier] ?? 8;
+};
+
+/**
+ * NPC 升级门槛等级
+ * 当 NPC 升到这些等级时，本轮升级循环会中断，
+ * 需要在下一个消息周期才能继续突破到下一层级（13/17/21/25）。
+ */
+const NPC_LEVEL_GATES: ReadonlySet<number> = new Set([12, 16, 20, 24]);
+
+/**
+ * 加权随机选择一个属性进行加点
+ *
+ * - 权重 = max(1, baseValue²)，基础属性越高越容易被选中（强者恒强）
+ * - 当前值（基础 + 单级加点 + 层级加点）已达上限的属性会被排除
+ *
+ * @returns 被选中的属性键名，若所有属性都已满则返回 null
+ */
+const weightedPickNpcAttribute = (
+  baseAttrs: Record<string, number>,
+  pendingSingleAdds: Record<string, number>,
+  pendingTierAdds: Record<string, number>,
+  cap: number
+): (typeof AttributeKeys)[number] | null => {
+  const candidates: Array<{ key: (typeof AttributeKeys)[number]; weight: number }> = [];
+
+  _.forEach(AttributeKeys, key => {
+    const baseValue = Number(baseAttrs[key] || 0);
+    const singleAdd = Number(pendingSingleAdds[key] || 0);
+    const tierAdd = Number(pendingTierAdds[key] || 0);
+    const currentValue = baseValue + singleAdd + tierAdd;
+
+    if (currentValue >= cap) return;
+
+    // 高属性值给予更高权重（平方），使 NPC 形成差异化特长
+    const weight = Math.max(1, baseValue * baseValue);
+    candidates.push({ key, weight });
+  });
+
+  if (candidates.length === 0) return null;
+
+  const totalWeight = _.sumBy(candidates, 'weight');
+  let roll = Math.random() * totalWeight;
+  let picked: (typeof AttributeKeys)[number] =
+    candidates[candidates.length - 1]?.key ?? AttributeKeys[0];
+
+  for (const item of candidates) {
+    roll -= item.weight;
+    if (roll <= 0) {
+      picked = item.key;
+      break;
+    }
+  }
+
+  return picked;
+};
+
 /**
  * 处理所有 NPC 的经验与升级
  *
@@ -137,9 +207,19 @@ export const processNPCExperienceAndLevel = (
       _.set(npcData, 'level', npcData.level + 1);
       _.set(npcData, 'required_exp', getRequiredXpForLevel(npcData.level));
 
+      const currentTier = getTierForLevel(npcData.level);
+      const attrCap = getNpcAttrCapByTier(currentTier);
+
       if (npcData.level % GameConfig.ApAcquisitionLevel === 0) {
-        const randomAttributeKey = _.sample(AttributeKeys) ?? AttributeKeys[0];
-        levelAttributeGain[randomAttributeKey] += 1;
+        const pickedAttr = weightedPickNpcAttribute(
+          initialAttributes,
+          levelAttributeGain,
+          milestoneAttributeGain,
+          attrCap
+        );
+        if (pickedAttr) {
+          levelAttributeGain[pickedAttr] += 1;
+        }
       }
 
       const milestone = getMilestoneForLevel(npcData.level);
@@ -153,6 +233,11 @@ export const processNPCExperienceAndLevel = (
       if (previousTier !== nextTier) {
         levelUpPrompts.push(`${name}的生命层级从${previousTier}突破到了${nextTier}`);
         previousTier = nextTier;
+      }
+
+      // 到达门槛等级时中断本轮升级，下一周期方可突破
+      if (NPC_LEVEL_GATES.has(npcData.level)) {
+        break;
       }
     }
 
