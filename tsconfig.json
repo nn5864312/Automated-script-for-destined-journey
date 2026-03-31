@@ -1,21 +1,13 @@
 {
   "compilerOptions": {
-    "types": [
-      "jquery",
-      "lodash",
-      "toastr",
-      "type-fest",
-      "zod",
-      "jest"
-    ],
+    "types": ["jquery", "lodash", "toastr", "type-fest", "zod", "jest"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "sourceMap": true,
