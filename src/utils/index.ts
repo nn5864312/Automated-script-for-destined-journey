@@ -8,7 +8,6 @@ import { klona } from 'klona';
 const InjectIdsToRemove = [
   '等级提升',
   'NPC等级提升',
-  '同伴种族',
   '主角种族',
   '当前所在地点',
   '当前时间',
