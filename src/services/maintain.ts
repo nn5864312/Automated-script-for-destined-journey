@@ -33,7 +33,6 @@ export const maintainCharacterData = (
     _.set(character, '累计经验值', safeExp);
   }
 
-  
   // 更新生命层级
   _.set(character, '生命层级', getTierForLevel(character.等级));
 };
