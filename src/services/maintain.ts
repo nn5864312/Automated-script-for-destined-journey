@@ -3,7 +3,6 @@
  * 负责维护角色数据的完整性和一致性
  */
 
-import { recordIllegalLevelUp } from '@/services/log';
 import { getRequiredXpForLevel, getTierForLevel } from '../config';
 import type { MessageVariables } from '../types';
 import { safeGet } from '../utils';
@@ -20,43 +19,18 @@ export const maintainCharacterData = (
   old_variables: MessageVariables
 ): void => {
   const character = safeGet(new_variables, 'stat_data.主角', {} as any);
-  const hasOldLevel = _.has(old_variables, 'stat_data.主角.等级');
-  const oldLevel = safeGet(old_variables, 'stat_data.主角.等级', 1);
-  const isInitDryRun = getLastMessageId() <= 2;
 
   // 登神长阶开启条件与任务同步
   syncAscensionState(new_variables, old_variables);
 
-  // 防止等级被非法提升（允许经验满且外部预写升级等级）
-  if (!isInitDryRun && hasOldLevel && oldLevel < character.等级) {
-    const requiredXpNumber = Number(safeGet(character, '升级所需经验', 0));
-    const expFull =
-      Number.isFinite(requiredXpNumber) &&
-      Number(safeGet(character, '累计经验值', 0)) >= requiredXpNumber;
-    const isPrewriteLevelUp = expFull && character.等级 === oldLevel + 1;
-
-    if (!isPrewriteLevelUp) {
-      _.set(character, '等级', oldLevel);
-      recordIllegalLevelUp();
-      toastr.warning('等级被AI非法提升,请检查变量更新');
-    } else {
-      _.set(character, '等级', oldLevel);
-    }
-  }
-
   // 更新升级所需经验
   _.set(character, '升级所需经验', getRequiredXpForLevel(character.等级));
 
-  // 确保累计经验值不低于当前等级的最低要求，同时防止经验被意外降低
-  if (character.等级 > 0) {
-    const minExp = getRequiredXpForLevel(character.等级 - 1);
-    const currentExp = Number(character.累计经验值) || 0;
-    const oldExp = safeGet(old_variables, 'stat_data.主角.累计经验值', currentExp);
-    // 取当前经验、最低要求和旧经验中的最大值，防止经验倒退
-    const safeExp = Math.max(currentExp, Number(minExp) || 0, oldExp);
-    if (character.累计经验值 !== safeExp) {
-      _.set(character, '累计经验值', safeExp);
-    }
+  // 允许累计经验值下降，不保留下限，只保证 >= 0
+  const currentExp = Number(character.累计经验值);
+  const safeExp = Number.isFinite(currentExp) ? Math.max(currentExp, 0) : 0;
+  if (character.累计经验值 !== safeExp) {
+    _.set(character, '累计经验值', safeExp);
   }
 
   // 更新生命层级
