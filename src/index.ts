@@ -44,7 +44,10 @@ const logLifeSkill = (label: string, value: unknown): void => {
 
 const getMessageVariablesSafe = (messageId: number): Partial<MessageVariables> | null => {
   try {
-    return getVariables({ type: 'message', message_id: messageId }) as Partial<MessageVariables> | null;
+    return getVariables({
+      type: 'message',
+      message_id: messageId,
+    }) as Partial<MessageVariables> | null;
   } catch (error) {
     console.warn(`[生活职业调试-取消息变量失败-${messageId}]`, error);
     return null;
@@ -64,9 +67,15 @@ const handleVariableUpdate = (data: Mvu.MvuData, data_before_update: Mvu.MvuData
   const defaultMessageVariables = getMessageVariablesSafe(0);
 
   logLifeSkill('[生活职业调试-0-事件原始data.stat_data]', data.stat_data ?? null);
-  logLifeSkill('[生活职业调试-0-事件原始data_before_update.stat_data]', data_before_update.stat_data ?? null);
+  logLifeSkill(
+    '[生活职业调试-0-事件原始data_before_update.stat_data]',
+    data_before_update.stat_data ?? null
+  );
   logLifeSkill('[生活职业调试-0-消息变量-1.stat_data]', currentMessageVariables?.stat_data ?? null);
-  logLifeSkill('[生活职业调试-0-消息变量-2.stat_data]', previousMessageVariables?.stat_data ?? null);
+  logLifeSkill(
+    '[生活职业调试-0-消息变量-2.stat_data]',
+    previousMessageVariables?.stat_data ?? null
+  );
   logLifeSkill('[生活职业调试-0-消息变量0.stat_data]', defaultMessageVariables?.stat_data ?? null);
 
   // 关键修正：本轮处理优先信事件 payload 自带的最新 stat_data，
