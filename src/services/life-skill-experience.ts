@@ -25,12 +25,15 @@ export const processLifeSkillExperienceAndLevel = (
   const categories = safeGet(
     character,
     '生活职业.分类',
-    {} as Record<string, {
-      等级?: string;
-      当前经验?: number;
-      升级所需经验?: number;
-      熟练度?: number;
-    }>
+    {} as Record<
+      string,
+      {
+        等级?: string;
+        当前经验?: number;
+        升级所需经验?: number;
+        熟练度?: number;
+      }
+    >
   );
 
   const levelUpPrompts: string[] = [];
@@ -40,10 +43,7 @@ export const processLifeSkillExperienceAndLevel = (
     let currentLevel = startLevel;
     let currentExp = Number(_.get(entry, '当前经验', 0));
     currentExp = Number.isFinite(currentExp) ? Math.max(0, Math.round(currentExp)) : 0;
-    let requiredExp = Math.max(
-      Number(getLifeSkillExpByLevel(currentLevel)) || 1,
-      1,
-    );
+    let requiredExp = Math.max(Number(getLifeSkillExpByLevel(currentLevel)) || 1, 1);
 
     while (currentExp >= requiredExp && !isMaxLifeSkillLevel(currentLevel)) {
       currentExp -= requiredExp;
@@ -61,7 +61,9 @@ export const processLifeSkillExperienceAndLevel = (
     _.set(entry, '熟练度', Math.max(0, Math.round(Number(_.get(entry, '熟练度', 0)) || 0)));
 
     if (currentLevel !== startLevel) {
-      levelUpPrompts.push(`{{user}}的生活职业「${categoryName}」从${startLevel}提升到了${currentLevel}`);
+      levelUpPrompts.push(
+        `{{user}}的生活职业「${categoryName}」从${startLevel}提升到了${currentLevel}`
+      );
     }
   });
 

@@ -345,12 +345,10 @@ const parseLifeSkillLevel = (level: string) => {
 };
 
 export const getLifeSkillExpByLevel = (level: string) =>
-  LifeSkillLevelExpTable[
-    normalizeLifeSkillLevel(level) as keyof typeof LifeSkillLevelExpTable
-  ] ?? DEFAULT_LIFE_SKILL_EXP;
+  LifeSkillLevelExpTable[normalizeLifeSkillLevel(level) as keyof typeof LifeSkillLevelExpTable] ??
+  DEFAULT_LIFE_SKILL_EXP;
 
-export const isMaxLifeSkillLevel = (level: string) =>
-  normalizeLifeSkillLevel(level) === '道人 50';
+export const isMaxLifeSkillLevel = (level: string) => normalizeLifeSkillLevel(level) === '道人 50';
 
 export const getNextLifeSkillLevel = (level: string) => {
   const { rank, step } = parseLifeSkillLevel(level);
