@@ -389,15 +389,12 @@ export const LifeSkillEntrySchema = z
 
 export const LifeSkillsSchema = z
   .object({
-    当前主修: z.string().prefault(''),
-    总熟练度: z.coerce.number().prefault(0),
     分类: z
       .object(_.mapValues(DefaultLifeSkillCategories, () => LifeSkillEntrySchema.prefault({})))
       .prefault({}),
   })
   .prefault({})
   .transform(data => ({
-    当前主修: _.trim(data.当前主修 || ''),
     分类: _.mapValues(data.分类, item => {
       const normalizedLevel = normalizeLifeSkillLevel(item.等级);
       return {
@@ -406,7 +403,6 @@ export const LifeSkillsSchema = z
         升级所需经验: getLifeSkillExpByLevel(normalizedLevel),
       };
     }),
-    总熟练度: Math.max(0, _.sumBy(_.values(data.分类), item => item.熟练度 ?? 0)),
   }));
 
 /**

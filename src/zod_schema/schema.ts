@@ -1,6 +1,7 @@
 import {
   clampedMum,
   IdentitySchema,
+  LifeSkillsSchema,
   InventoryItemSchema,
   minLimitedNum,
   StatusEffectSchema,
@@ -29,6 +30,7 @@ const player = z
       .transform(items => _.pickBy(items, item => item.数量 > 0)),
     金钱: z.coerce.number().prefault(0).transform(Math.round),
     状态效果: z.record(z.string(), StatusEffectSchema).prefault({}),
+    生活职业: LifeSkillsSchema.prefault({}),
   })
   .prefault({})
   .transform(data => {
@@ -64,6 +66,8 @@ const player = z
       '体力值',
       // 状态效果
       '状态效果',
+      // 生活职业
+      '生活职业',
       // 物品与金钱
       '金钱',
       '背包',
