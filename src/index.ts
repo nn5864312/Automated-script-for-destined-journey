@@ -44,10 +44,7 @@ const logLifeSkill = (label: string, value: unknown): void => {
 
 const getMessageVariablesSafe = (messageId: number): Partial<MessageVariables> | null => {
   try {
-    return getVariables({
-      type: 'message',
-      message_id: messageId,
-    }) as Partial<MessageVariables> | null;
+    return getVariables({ type: 'message', message_id: messageId }) as Partial<MessageVariables> | null;
   } catch (error) {
     console.warn(`[生活职业调试-取消息变量失败-${messageId}]`, error);
     return null;
@@ -67,27 +64,23 @@ const handleVariableUpdate = (data: Mvu.MvuData, data_before_update: Mvu.MvuData
   const defaultMessageVariables = getMessageVariablesSafe(0);
 
   logLifeSkill('[生活职业调试-0-事件原始data.stat_data]', data.stat_data ?? null);
-  logLifeSkill(
-    '[生活职业调试-0-事件原始data_before_update.stat_data]',
-    data_before_update.stat_data ?? null
-  );
+  logLifeSkill('[生活职业调试-0-事件原始data_before_update.stat_data]', data_before_update.stat_data ?? null);
   logLifeSkill('[生活职业调试-0-消息变量-1.stat_data]', currentMessageVariables?.stat_data ?? null);
-  logLifeSkill(
-    '[生活职业调试-0-消息变量-2.stat_data]',
-    previousMessageVariables?.stat_data ?? null
-  );
+  logLifeSkill('[生活职业调试-0-消息变量-2.stat_data]', previousMessageVariables?.stat_data ?? null);
   logLifeSkill('[生活职业调试-0-消息变量0.stat_data]', defaultMessageVariables?.stat_data ?? null);
 
+  // 关键修正：本轮处理优先信事件 payload 自带的最新 stat_data，
+  // 避免被 -1/-2 消息变量中的旧快照覆盖，导致 patch 值看不到。
   const nextStatData =
-    currentMessageVariables?.stat_data ??
     data.stat_data ??
+    currentMessageVariables?.stat_data ??
     previousMessageVariables?.stat_data ??
     defaultMessageVariables?.stat_data ??
     null;
 
   const prevStatData =
-    previousMessageVariables?.stat_data ??
     data_before_update.stat_data ??
+    previousMessageVariables?.stat_data ??
     defaultMessageVariables?.stat_data ??
     null;
 
@@ -162,6 +155,8 @@ const handleVariableUpdate = (data: Mvu.MvuData, data_before_update: Mvu.MvuData
  * 组合函数，在生成前注入所有需要的提示
  */
 const injectAllPrompts = (): void => {
+  // 这里先保留 -2：它影响的是 AI 注入提示所见的上下文，不是本轮变量处理的最新值来源。
+  // 当前核心 bug 在 handleVariableUpdate 取数优先级，先修这个。
   const variables = getVariables({ type: 'message', message_id: -2 }) as MessageVariables;
 
   injectGameInfo(variables);
